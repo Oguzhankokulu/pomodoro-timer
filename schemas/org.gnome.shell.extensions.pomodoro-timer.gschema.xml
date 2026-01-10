@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="pomodoro-timer">
+  <schema id="org.gnome.shell.extensions.pomodoro-timer" path="/org/gnome/shell/extensions/pomodoro-timer/">
+    
+    <!-- Timer Durations (in seconds) -->
+    <key name="work-duration" type="i">
+      <default>1500</default>
+      <summary>Work duration in seconds</summary>
+    </key>
+    
+    <key name="short-break-duration" type="i">
+      <default>300</default>
+      <summary>Short break duration in seconds</summary>
+    </key>
+    
+    <key name="long-break-duration" type="i">
+      <default>900</default>
+      <summary>Long break duration in seconds</summary>
+    </key>
+    
+    <!-- Interval Settings -->
+    <key name="intervals-per-set" type="i">
+      <default>4</default>
+      <summary>Work intervals per set</summary>
+    </key>
+    
+    <!-- Auto-start Settings -->
+    <key name="auto-start-breaks" type="b">
+      <default>false</default>
+      <summary>Auto-start breaks</summary>
+    </key>
+    
+    <key name="auto-start-work" type="b">
+      <default>false</default>
+      <summary>Auto-start work</summary>
+    </key>
+    
+    <!-- Sound Settings -->
+    <key name="sound-enabled" type="b">
+      <default>true</default>
+      <summary>Enable sounds</summary>
+    </key>
+    
+    <key name="tick-sound-enabled" type="b">
+      <default>false</default>
+      <summary>Enable tick sound</summary>
+    </key>
+    
+    <!-- Panel Display Settings -->
+    <key name="show-icon" type="b">
+      <default>true</default>
+      <summary>Show icon in panel</summary>
+    </key>
+    
+    <key name="show-timer-always" type="b">
+      <default>false</default>
+      <summary>Always show timer in panel</summary>
+    </key>
+    
+    <!-- Suspend Inhibitor Settings -->
+    <key name="suspend-inhibitor-enabled" type="b">
+      <default>true</default>
+      <summary>Disable auto-suspend during pomodoro</summary>
+    </key>
+    
+  </schema>
+</schemalist>

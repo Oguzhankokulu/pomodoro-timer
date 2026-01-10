@@ -1,0 +1,118 @@
+/* Pomodoro Timer Extension Styles */
+
+.pomodoro-panel-box {
+    spacing: 0px;
+    padding: 0;
+}
+
+.pomodoro-icon {
+    icon-size: 16px;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 2px;
+}
+
+.pomodoro-timer-label {
+    font-weight: bold;
+    font-feature-settings: "tnum";
+    margin-left: 4px;
+}
+
+.pomodoro-status-box {
+    background-color: #e74c3c;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 8px 24px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.pomodoro-interval-label {
+    font-weight: bold;
+    opacity: 0.8;
+}
+
+.pomodoro-button-row {
+    spacing: 8px;
+}
+
+.pomodoro-control-btn {
+    min-width: 80px;
+    min-height: 32px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    background-color: #e74c3c;
+    color: white;
+}
+
+.pomodoro-control-btn:hover {
+    background-color: #ec7063;
+}
+
+.pomodoro-control-btn:active {
+    background-color: #c0392b;
+}
+
+.pomodoro-btn-primary,
+.pomodoro-btn-secondary,
+.pomodoro-btn-warning,
+.pomodoro-btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.pomodoro-btn-primary:hover,
+.pomodoro-btn-secondary:hover,
+.pomodoro-btn-warning:hover,
+.pomodoro-btn-danger:hover {
+    background-color: #ec7063;
+}
+
+.pomodoro-btn-primary:active,
+.pomodoro-btn-secondary:active,
+.pomodoro-btn-warning:active,
+.pomodoro-btn-danger:active {
+    background-color: #c0392b;
+}
+
+.pomodoro-duration-row {
+    spacing: 8px;
+    padding: 2px 0;
+}
+
+.pomodoro-duration-label {
+    min-width: 100px;
+}
+
+.pomodoro-duration-value {
+    min-width: 50px;
+    text-align: center;
+    font-weight: bold;
+    font-feature-settings: "tnum";
+}
+
+.pomodoro-adjust-button {
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+}
+
+.pomodoro-adjust-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.pomodoro-adjust-button:active {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.pomodoro-paused {
+    opacity: 0.7;
+}
