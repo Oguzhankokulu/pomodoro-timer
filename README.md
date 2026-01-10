@@ -45,7 +45,7 @@ gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
 
 ```bash
 # Clone the repository
-git clone https://github.com/Oguzhankokulu/gnome-pomodoro-extension.git
+git clone https://github.com/Oguzhankokulu/pomodoro-timer.git
 
 # Copy to extensions directory
 cp -r pomodoro-timer@Oguzhankokulu.github.com ~/.local/share/gnome-shell/extensions/
