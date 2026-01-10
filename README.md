@@ -23,6 +23,22 @@ A sleek GNOME Shell extension for productivity using the Pomodoro Technique.
 |:-------------------:|:-----------------:|
 | ![Appearance](assets/Screenshots/appearance_configs.png) | ![Behavior](assets/Screenshots/behavior_configs.png) |
 
+## Settings
+
+Open preferences via:
+```bash
+gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
+```
+
+| Setting | Description |
+|---------|-------------|
+| Auto-start Breaks | Automatically start break after work |
+| Auto-start Work | Automatically start work after break |
+| Always Show Timer | Show timer in panel even when idle |
+| Enable Sounds | Play audio notifications |
+| Tick Sound | Play ticking sound while running |
+| Prevent Auto-suspend | Keep system awake during pomodoro |
+
 ## Installation
 
 ### From Source
@@ -40,22 +56,6 @@ glib-compile-schemas ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzha
 # Enable extension (logout/login required on Wayland)
 gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
 ```
-
-## Settings
-
-Open preferences via:
-```bash
-gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
-```
-
-| Setting | Description |
-|---------|-------------|
-| Auto-start Breaks | Automatically start break after work |
-| Auto-start Work | Automatically start work after break |
-| Always Show Timer | Show timer in panel even when idle |
-| Enable Sounds | Play audio notifications |
-| Tick Sound | Play ticking sound while running |
-| Prevent Auto-suspend | Keep system awake during pomodoro |
 
 ## Customization
 
