@@ -1,9 +1,15 @@
 {
-  "version": "1""1",
   "name": "Pomodoro Timer",
   "description": "A robust Pomodoro timer with adjustable timers and auto suspend disabling.",
   "uuid": "pomodoro-timer@Oguzhankokulu.github.com",
-  "shell-version": [ "45", "46", "47", "48", "49" ],
+  "version": 1,
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49"
+  ],
   "url": "https://github.com/Oguzhankokulu/gnome-pomodoro-extension",
   "settings-schema": "org.gnome.shell.extensions.pomodoro-timer"
 }
