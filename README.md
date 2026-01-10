@@ -73,7 +73,7 @@ Replace sound files in `assets/sounds/`:
 ## Requirements
 
 - GNOME Shell 45, 46, 47, 48, or 49
-- `paplay` (PulseAudio) for sound playback
+- `pw-play` (PipeWire, GNOME 46+) or `paplay` (PulseAudio) for sound playback
 
 ## License
 

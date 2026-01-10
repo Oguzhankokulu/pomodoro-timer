@@ -35,20 +35,28 @@ export class SoundManager {
             return;
         }
 
-        try {
-            const [success, pid] = GLib.spawn_async(
-                null,
-                ['paplay', soundPath],
-                null,
-                GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD,
-                null
-            );
-            if (success) {
-                GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, () => { });
+        // Try PipeWire first (GNOME 46+), then fall back to PulseAudio
+        const players = ['pw-play', 'paplay'];
+
+        for (const player of players) {
+            try {
+                const [success, pid] = GLib.spawn_async(
+                    null,
+                    [player, soundPath],
+                    null,
+                    GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+                    null
+                );
+                if (success) {
+                    GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, () => { });
+                    return; // Successfully started playback
+                }
+            } catch (e) {
+                // Try the next player
+                continue;
             }
-        } catch (e) {
-            console.log(`Pomodoro: Failed to play sound: ${e.message}`);
         }
+        console.log(`Pomodoro: Failed to play sound - no audio player available`);
     }
 
     playStartSound() {
