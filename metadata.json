@@ -2,7 +2,7 @@
   "name": "Pomodoro Timer",
   "description": "A robust Pomodoro timer with adjustable timers and auto suspend disabling.",
   "uuid": "pomodoro-timer@Oguzhankokulu.github.com",
-  "version": 1,
+  "version-name": "1.0",
   "shell-version": [
     "45",
     "46",
