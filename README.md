@@ -69,6 +69,22 @@ glib-compile-schemas ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzha
 gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
 ```
 
+### To Update Existing Extension via GitHub
+
+```bash
+# Go to the extensions directory
+cd ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzhankokulu.github.com
+
+# Pull the changes
+git pull
+
+# Compile schemas
+glib-compile-schemas ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzhankokulu.github.com/schemas/
+
+# Enable extension (logout/login required on Wayland)
+gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
+```
+
 ## Customization
 
 ### Custom Icon
