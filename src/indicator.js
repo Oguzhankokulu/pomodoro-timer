@@ -20,11 +20,12 @@ const MAX_DURATION = 5400;
 // Duration adjustment menu item with +/- buttons and editable entry
 const DurationAdjustMenuItem = GObject.registerClass(
     class DurationAdjustMenuItem extends PopupMenu.PopupBaseMenuItem {
-        _init(label, settingsKey, settings, timer) {
+        _init(label, settingsKey, settings, timer, defaultValue) {
             super._init({ reactive: false });
             this._settingsKey = settingsKey;
             this._settings = settings;
             this._timer = timer;
+            this._defaultValue = defaultValue;
             this._isEditing = false;
 
             const box = new St.BoxLayout({ x_expand: true, style_class: 'pomodoro-duration-row' });
@@ -35,6 +36,12 @@ const DurationAdjustMenuItem = GObject.registerClass(
                 x_expand: true,
                 style_class: 'pomodoro-duration-label',
             });
+
+            this._resetBtn = new St.Button({
+                style_class: 'pomodoro-adjust-button pomodoro-reset-btn',
+                child: new St.Label({ text: '↺' }),
+            });
+            this._resetBtn.connect('clicked', () => this._resetToDefault());
 
             this._minusBtn = new St.Button({
                 style_class: 'pomodoro-adjust-button',
@@ -68,6 +75,7 @@ const DurationAdjustMenuItem = GObject.registerClass(
             this._plusBtn.connect('clicked', () => this._adjustDuration(DURATION_STEP));
 
             box.add_child(this._labelWidget);
+            box.add_child(this._resetBtn);
             box.add_child(this._minusBtn);
             box.add_child(this._durationBtn);
             box.add_child(this._entry);
@@ -130,6 +138,10 @@ const DurationAdjustMenuItem = GObject.registerClass(
             return null;
         }
 
+        _resetToDefault() {
+            this._settings.set_int(this._settingsKey, this._defaultValue);
+        }
+
         _adjustDuration(delta) {
             let current = this._settings.get_int(this._settingsKey);
             let newValue = Math.max(MIN_DURATION, Math.min(MAX_DURATION, current + delta));
@@ -166,6 +178,12 @@ const IntervalCountMenuItem = GObject.registerClass(
                 style_class: 'pomodoro-duration-label',
             });
 
+            this._resetBtn = new St.Button({
+                style_class: 'pomodoro-adjust-button pomodoro-reset-btn',
+                child: new St.Label({ text: '↺' }),
+            });
+            this._resetBtn.connect('clicked', () => this._resetToDefault());
+
             this._minusBtn = new St.Button({
                 style_class: 'pomodoro-adjust-button',
                 child: new St.Label({ text: '−' }),
@@ -185,6 +203,7 @@ const IntervalCountMenuItem = GObject.registerClass(
             this._plusBtn.connect('clicked', () => this._adjust(1));
 
             box.add_child(this._labelWidget);
+            box.add_child(this._resetBtn);
             box.add_child(this._minusBtn);
             box.add_child(this._valueLabel);
             box.add_child(this._plusBtn);
@@ -193,6 +212,10 @@ const IntervalCountMenuItem = GObject.registerClass(
             this._settingsChangedId = this._settings.connect('changed::intervals-per-set', () => {
                 this._updateDisplay();
             });
+        }
+
+        _resetToDefault() {
+            this._settings.set_int('intervals-per-set', 4);
         }
 
         _adjust(delta) {
@@ -336,13 +359,13 @@ export const PomodoroIndicator = GObject.registerClass(
             this._durationsSection = new PopupMenu.PopupMenuSection();
             this.menu.addMenuItem(this._durationsSection);
 
-            this._workDurationItem = new DurationAdjustMenuItem('Work:', 'work-duration', this._settings, this._timer);
+            this._workDurationItem = new DurationAdjustMenuItem('Work:', 'work-duration', this._settings, this._timer, 1500);
             this._durationsSection.addMenuItem(this._workDurationItem);
 
-            this._shortBreakDurationItem = new DurationAdjustMenuItem('Short Break:', 'short-break-duration', this._settings, this._timer);
+            this._shortBreakDurationItem = new DurationAdjustMenuItem('Short Break:', 'short-break-duration', this._settings, this._timer, 300);
             this._durationsSection.addMenuItem(this._shortBreakDurationItem);
 
-            this._longBreakDurationItem = new DurationAdjustMenuItem('Long Break:', 'long-break-duration', this._settings, this._timer);
+            this._longBreakDurationItem = new DurationAdjustMenuItem('Long Break:', 'long-break-duration', this._settings, this._timer, 900);
             this._durationsSection.addMenuItem(this._longBreakDurationItem);
 
             this._intervalsPerSetItem = new IntervalCountMenuItem(this._settings);
