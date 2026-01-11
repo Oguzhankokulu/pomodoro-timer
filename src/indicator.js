@@ -254,10 +254,9 @@ export const PomodoroIndicator = GObject.registerClass(
             this._connectTimerSignals();
             this._connectSettingsSignals();
             this._updateUI();
-        }
 
-        vfunc_event(event) {
-            if (event.type() === Clutter.EventType.BUTTON_PRESS) {
+            // Mouse button shortcuts
+            this.connect('button-press-event', (actor, event) => {
                 const button = event.get_button();
 
                 // Right click (button 3) - Start/Pause
@@ -271,9 +270,9 @@ export const PomodoroIndicator = GObject.registerClass(
                     this._timer.skip();
                     return Clutter.EVENT_STOP;
                 }
-            }
 
-            return super.vfunc_event(event);
+                return Clutter.EVENT_PROPAGATE;
+            });
         }
 
         _buildPanelButton() {
