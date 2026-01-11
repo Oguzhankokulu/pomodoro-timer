@@ -12,6 +12,15 @@ A sleek GNOME Shell extension for productivity using the Pomodoro Technique.
 - **Suspend Inhibitor** - Keeps your system awake during pomodoros (Caffeine Like)
 - **Adjustable Durations** - Work, Short Break, Long Break, Intervals per Set
 - **Minimal UI** - Timer hidden when idle, shown only when running
+- **Quick Actions** - Right-click to Start/Pause, Middle-click to Skip
+
+## Mouse Shortcuts
+
+| Click | Action |
+|-------|--------|
+| Left-click | Open dropdown menu |
+| Right-click | Start / Pause timer |
+| Middle-click | Skip current session |
 
 ## Screenshots
 
@@ -64,7 +73,7 @@ gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
 
 ### Custom Icon
 
-Replace the panel icon by swapping `assets/images/fruit.png` with your own **16×16 pixel** PNG image. Keep the filename as `fruit.png`.
+Replace the panel icon by swapping `assets/images/fruit.png` or `assets/images/coffee.png` with your own **16×16 pixel** PNG image. Keep the filename as the same.
 
 ### Custom Sounds
 

@@ -247,12 +247,33 @@ export const PomodoroIndicator = GObject.registerClass(
             this._timer = new PomodoroTimer(settings);
             this._soundManager = new SoundManager(extensionPath, settings);
             this._suspendInhibitor = new SuspendInhibitor(settings);
+            this._sessionStarted = false;
 
             this._buildPanelButton();
             this._buildMenu();
             this._connectTimerSignals();
             this._connectSettingsSignals();
             this._updateUI();
+        }
+
+        vfunc_event(event) {
+            if (event.type() === Clutter.EventType.BUTTON_PRESS) {
+                const button = event.get_button();
+
+                // Right click (button 3) - Start/Pause
+                if (button === 3) {
+                    this._onStartPauseClicked();
+                    return Clutter.EVENT_STOP;
+                }
+
+                // Middle click (button 2) - Skip
+                if (button === 2) {
+                    this._timer.skip();
+                    return Clutter.EVENT_STOP;
+                }
+            }
+
+            return super.vfunc_event(event);
         }
 
         _buildPanelButton() {
@@ -345,6 +366,7 @@ export const PomodoroIndicator = GObject.registerClass(
                 x_expand: true,
             });
             this._fullResetBtn.connect('clicked', () => {
+                this._sessionStarted = false;
                 this._timer.fullReset();
             });
 
@@ -376,7 +398,6 @@ export const PomodoroIndicator = GObject.registerClass(
             // Settings button
             this._settingsItem = new PopupMenu.PopupMenuItem('Settings');
             this._settingsItem.connect('activate', () => {
-                // Open the preferences window
                 try {
                     GLib.spawn_command_line_async(`gnome-extensions prefs ${this._uuid}`);
                 } catch (e) {
@@ -443,6 +464,7 @@ export const PomodoroIndicator = GObject.registerClass(
         _onStartPauseClicked() {
             switch (this._timer.state) {
                 case TimerState.IDLE:
+                    this._sessionStarted = true;
                     this._timer.start();
                     break;
                 case TimerState.RUNNING:
@@ -463,12 +485,12 @@ export const PomodoroIndicator = GObject.registerClass(
             this._timerLabel.text = formatTime(this._timer.remainingTime);
             this._statusLabel.text = getIntervalDisplayName(intervalType);
 
-            // Panel visibility based on settings
+            // Panel visibility based on settings and session state
             const showIcon = this._settings.get_boolean('show-icon');
             const showTimerAlways = this._settings.get_boolean('show-timer-always');
 
             this._icon.visible = showIcon;
-            this._timerLabel.visible = showTimerAlways || (state === TimerState.RUNNING);
+            this._timerLabel.visible = showTimerAlways || this._sessionStarted;
 
             if (intervalType === IntervalType.WORK) {
                 this._intervalCountLabel.text = `Pomodoro ${completed + 1}/${total} | ${formatTime(this._timer.remainingTime)}`;
@@ -510,6 +532,12 @@ export const PomodoroIndicator = GObject.registerClass(
             this._icon.remove_style_class_name('pomodoro-work');
             this._icon.remove_style_class_name('pomodoro-break');
             this._icon.remove_style_class_name('pomodoro-paused');
+
+            // Swap icon based on interval type
+            const iconName = (intervalType === IntervalType.WORK) ? 'fruit.png' : 'coffee.png';
+            const iconPath = GLib.build_filenamev([this._extensionPath, 'assets', 'images', iconName]);
+            const iconFile = Gio.File.new_for_path(iconPath);
+            this._icon.gicon = Gio.FileIcon.new(iconFile);
 
             if (state === TimerState.PAUSED) {
                 this._icon.add_style_class_name('pomodoro-paused');
