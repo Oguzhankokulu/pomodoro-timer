@@ -17,7 +17,7 @@ const DURATION_STEP = 30;
 const MIN_DURATION = 30;
 const MAX_DURATION = 5400;
 
-// Duration adjustment menu item with +/- buttons
+// Duration adjustment menu item with +/- buttons and editable entry
 const DurationAdjustMenuItem = GObject.registerClass(
     class DurationAdjustMenuItem extends PopupMenu.PopupBaseMenuItem {
         _init(label, settingsKey, settings, timer) {
@@ -25,6 +25,7 @@ const DurationAdjustMenuItem = GObject.registerClass(
             this._settingsKey = settingsKey;
             this._settings = settings;
             this._timer = timer;
+            this._isEditing = false;
 
             const box = new St.BoxLayout({ x_expand: true, style_class: 'pomodoro-duration-row' });
 
@@ -41,11 +42,24 @@ const DurationAdjustMenuItem = GObject.registerClass(
             });
             this._minusBtn.connect('clicked', () => this._adjustDuration(-DURATION_STEP));
 
+            // Clickable label that becomes an entry on click
+            this._durationBtn = new St.Button({
+                style_class: 'pomodoro-duration-value-btn',
+            });
             this._durationLabel = new St.Label({
                 y_align: Clutter.ActorAlign.CENTER,
                 style_class: 'pomodoro-duration-value',
             });
-            this._updateDisplay();
+            this._durationBtn.set_child(this._durationLabel);
+            this._durationBtn.connect('clicked', () => this._startEditing());
+
+            // Hidden entry for editing
+            this._entry = new St.Entry({
+                style_class: 'pomodoro-duration-entry',
+                visible: false,
+            });
+            this._entry.clutter_text.connect('activate', () => this._finishEditing());
+            this._entry.clutter_text.connect('key-focus-out', () => this._finishEditing());
 
             this._plusBtn = new St.Button({
                 style_class: 'pomodoro-adjust-button',
@@ -55,13 +69,65 @@ const DurationAdjustMenuItem = GObject.registerClass(
 
             box.add_child(this._labelWidget);
             box.add_child(this._minusBtn);
-            box.add_child(this._durationLabel);
+            box.add_child(this._durationBtn);
+            box.add_child(this._entry);
             box.add_child(this._plusBtn);
             this.add_child(box);
 
+            this._updateDisplay();
+
             this._settingsChangedId = this._settings.connect(`changed::${settingsKey}`, () => {
-                this._updateDisplay();
+                if (!this._isEditing) this._updateDisplay();
             });
+        }
+
+        _startEditing() {
+            this._isEditing = true;
+            this._durationBtn.visible = false;
+            this._entry.visible = true;
+            this._entry.text = this._durationLabel.text;
+            this._entry.grab_key_focus();
+            this._entry.clutter_text.set_selection(0, -1);
+        }
+
+        _finishEditing() {
+            if (!this._isEditing) return;
+            this._isEditing = false;
+
+            const text = this._entry.text.trim();
+            const seconds = this._parseTimeInput(text);
+
+            if (seconds !== null && seconds >= MIN_DURATION && seconds <= MAX_DURATION) {
+                this._settings.set_int(this._settingsKey, seconds);
+            }
+
+            this._entry.visible = false;
+            this._durationBtn.visible = true;
+            this._updateDisplay();
+        }
+
+        _parseTimeInput(text) {
+            // Accept MM:SS or just MM format
+            const colonMatch = text.match(/^(\d{1,2}):(\d{1,2})$/);
+            if (colonMatch) {
+                const mins = parseInt(colonMatch[1], 10);
+                const secs = parseInt(colonMatch[2], 10);
+                if (mins >= 0 && mins <= 90 && secs >= 0 && secs < 60) {
+                    return mins * 60 + secs;
+                }
+                return null;
+            }
+
+            // Just minutes
+            const minsMatch = text.match(/^(\d{1,2})$/);
+            if (minsMatch) {
+                const mins = parseInt(minsMatch[1], 10);
+                if (mins >= 0 && mins <= 90) {
+                    return mins * 60;
+                }
+            }
+
+            return null;
         }
 
         _adjustDuration(delta) {
