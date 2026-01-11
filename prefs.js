@@ -1,5 +1,6 @@
 // Preferences window for Pomodoro Timer
 import Adw from 'gi://Adw';
+import Gtk from 'gi://Gtk';
 import Gio from 'gi://Gio';
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
@@ -56,6 +57,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
 
         soundGroup.add(this._createSwitchRow(settings, 'sound-enabled', 'Enable Sounds', 'Play sounds for timer events'));
         soundGroup.add(this._createSwitchRow(settings, 'tick-sound-enabled', 'Tick Sound', 'Play ticking sound while running'));
+        soundGroup.add(this._createVolumeRow(settings));
 
         // System Group
         const systemGroup = new Adw.PreferencesGroup({
@@ -75,6 +77,24 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             subtitle: subtitle,
         });
         settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+        return row;
+    }
+
+    _createVolumeRow(settings) {
+        const adjustment = new Gtk.Adjustment({
+            lower: 0,
+            upper: 100,
+            step_increment: 5,
+            page_increment: 10,
+        });
+
+        const row = new Adw.SpinRow({
+            title: 'Volume',
+            subtitle: 'Sound effect volume (0-100%)',
+            adjustment: adjustment,
+        });
+
+        settings.bind('sound-volume', row, 'value', Gio.SettingsBindFlags.DEFAULT);
         return row;
     }
 }

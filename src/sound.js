@@ -24,6 +24,10 @@ export class SoundManager {
         return this._settings.get_boolean('tick-sound-enabled');
     }
 
+    get soundVolume() {
+        return this._settings.get_int('sound-volume');
+    }
+
     _playSound(soundFile) {
         if (!this.soundEnabled) return;
 
@@ -35,14 +39,20 @@ export class SoundManager {
             return;
         }
 
-        // Try PipeWire first (GNOME 46+), then fall back to PulseAudio
-        const players = ['pw-play', 'paplay'];
+        // Volume formats differ between players:
+        // pw-play: 0.0-1.0 float
+        // paplay: 0-65536 (16-bit)
+        const volumePercent = this.soundVolume;
+        const players = [
+            { cmd: 'pw-play', volumeArg: `--volume=${(volumePercent / 100).toFixed(2)}` },
+            { cmd: 'paplay', volumeArg: `--volume=${Math.round((volumePercent / 100) * 65536)}` },
+        ];
 
         for (const player of players) {
             try {
                 const [success, pid] = GLib.spawn_async(
                     null,
-                    [player, soundPath],
+                    [player.cmd, player.volumeArg, soundPath],
                     null,
                     GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD,
                     null

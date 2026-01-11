@@ -46,6 +46,12 @@
       <summary>Enable tick sound</summary>
     </key>
     
+    <key name="sound-volume" type="i">
+      <default>100</default>
+      <range min="0" max="100"/>
+      <summary>Sound volume percentage</summary>
+    </key>
+    
     <!-- Panel Display Settings -->
     <key name="show-icon" type="b">
       <default>true</default>
