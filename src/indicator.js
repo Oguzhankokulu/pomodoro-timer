@@ -254,25 +254,25 @@ export const PomodoroIndicator = GObject.registerClass(
             this._connectTimerSignals();
             this._connectSettingsSignals();
             this._updateUI();
+        }
 
-            // Mouse button shortcuts
-            this.connect('button-press-event', (actor, event) => {
-                const button = event.get_button();
+        vfunc_button_press_event(event) {
+            const button = event.get_button();
 
-                // Right click (button 3) - Start/Pause
-                if (button === 3) {
-                    this._onStartPauseClicked();
-                    return Clutter.EVENT_STOP;
-                }
+            // Right click (button 3) - Start/Pause
+            if (button === 3) {
+                this._onStartPauseClicked();
+                return Clutter.EVENT_STOP;
+            }
 
-                // Middle click (button 2) - Skip
-                if (button === 2) {
-                    this._timer.skip();
-                    return Clutter.EVENT_STOP;
-                }
+            // Middle click (button 2) - Skip
+            if (button === 2) {
+                this._timer.skip();
+                return Clutter.EVENT_STOP;
+            }
 
-                return Clutter.EVENT_PROPAGATE;
-            });
+            // Left click - open menu (default behavior)
+            return super.vfunc_button_press_event(event);
         }
 
         _buildPanelButton() {
