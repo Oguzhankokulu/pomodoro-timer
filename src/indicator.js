@@ -256,23 +256,25 @@ export const PomodoroIndicator = GObject.registerClass(
             this._updateUI();
         }
 
-        vfunc_button_press_event(event) {
-            const button = event.get_button();
 
-            // Right click (button 3) - Start/Pause
-            if (button === 3) {
-                this._onStartPauseClicked();
-                return Clutter.EVENT_STOP;
+        vfunc_event(event) {
+            if (event.type() === Clutter.EventType.BUTTON_PRESS) {
+                const button = event.get_button();
+
+                // Right click (button 3) - Start/Pause
+                if (button === 3) {
+                    this._onStartPauseClicked();
+                    return Clutter.EVENT_STOP;
+                }
+
+                // Middle click (button 2) - Skip
+                if (button === 2) {
+                    this._timer.skip();
+                    return Clutter.EVENT_STOP;
+                }
             }
 
-            // Middle click (button 2) - Skip
-            if (button === 2) {
-                this._timer.skip();
-                return Clutter.EVENT_STOP;
-            }
-
-            // Left click - open menu (default behavior)
-            return super.vfunc_button_press_event(event);
+            return super.vfunc_event(event);
         }
 
         _buildPanelButton() {
