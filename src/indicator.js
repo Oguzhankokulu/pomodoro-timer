@@ -253,6 +253,10 @@ export const PomodoroIndicator = GObject.registerClass(
             this._buildMenu();
             this._connectTimerSignals();
             this._connectSettingsSignals();
+
+            // Restore session started flag for screen lock persistence
+            this._sessionStarted = this._settings.get_boolean('session-started');
+
             this._updateUI();
         }
 
@@ -368,6 +372,7 @@ export const PomodoroIndicator = GObject.registerClass(
             });
             this._fullResetBtn.connect('clicked', () => {
                 this._sessionStarted = false;
+                this._settings.set_boolean('session-started', false);
                 this._timer.fullReset();
             });
 
@@ -466,6 +471,7 @@ export const PomodoroIndicator = GObject.registerClass(
             switch (this._timer.state) {
                 case TimerState.IDLE:
                     this._sessionStarted = true;
+                    this._settings.set_boolean('session-started', true);
                     this._timer.start();
                     break;
                 case TimerState.RUNNING:

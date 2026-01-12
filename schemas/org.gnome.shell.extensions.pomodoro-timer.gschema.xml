@@ -69,5 +69,31 @@
       <summary>Disable auto-suspend during pomodoro</summary>
     </key>
     
+    <!-- Session State (internal, for persistence across screen lock) -->
+    <key name="session-state" type="s">
+      <default>''</default>
+      <summary>Current timer state (internal)</summary>
+    </key>
+    
+    <key name="session-interval-type" type="s">
+      <default>''</default>
+      <summary>Current interval type (internal)</summary>
+    </key>
+    
+    <key name="session-remaining-time" type="i">
+      <default>-1</default>
+      <summary>Remaining time in seconds (internal)</summary>
+    </key>
+    
+    <key name="session-completed-intervals" type="i">
+      <default>0</default>
+      <summary>Completed work intervals (internal)</summary>
+    </key>
+    
+    <key name="session-started" type="b">
+      <default>false</default>
+      <summary>Whether session has been started (internal)</summary>
+    </key>
+    
   </schema>
 </schemalist>

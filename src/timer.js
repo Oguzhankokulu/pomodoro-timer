@@ -21,7 +21,13 @@ export const PomodoroTimer = GObject.registerClass({
         this._completedWorkIntervals = 0;
         this._timeoutId = null;
 
-        this._settingsChangedId = this._settings.connect('changed', () => {
+        // Restore saved state from GSettings (for screen lock persistence)
+        this._restoreState();
+
+        this._settingsChangedId = this._settings.connect('changed', (settings, key) => {
+            // Ignore session state changes to prevent feedback loops
+            if (key.startsWith('session-')) return;
+
             if (this._state === TimerState.IDLE) {
                 this._remainingTime = this._getDuration(this._intervalType);
                 this.emit('tick', this._remainingTime);
@@ -51,6 +57,7 @@ export const PomodoroTimer = GObject.registerClass({
             const oldState = this._state;
             this._state = newState;
             this.emit('state-changed', oldState, newState);
+            this._saveState();
         }
     }
 
@@ -88,6 +95,7 @@ export const PomodoroTimer = GObject.registerClass({
         this._completedWorkIntervals = 0;
         this._remainingTime = this._getDuration(IntervalType.WORK);
         this._setState(TimerState.IDLE);
+        this._clearSavedState();
         this.emit('interval-changed', this._intervalType);
         this.emit('tick', this._remainingTime);
     }
@@ -168,6 +176,41 @@ export const PomodoroTimer = GObject.registerClass({
         }
     }
 
+    // State persistence methods for screen lock survival
+    _saveState() {
+        this._settings.set_string('session-state', this._state);
+        this._settings.set_string('session-interval-type', this._intervalType);
+        this._settings.set_int('session-remaining-time', this._remainingTime);
+        this._settings.set_int('session-completed-intervals', this._completedWorkIntervals);
+    }
+
+    _restoreState() {
+        const savedState = this._settings.get_string('session-state');
+        const savedIntervalType = this._settings.get_string('session-interval-type');
+        const savedRemainingTime = this._settings.get_int('session-remaining-time');
+        const savedCompletedIntervals = this._settings.get_int('session-completed-intervals');
+
+        // Only restore if we have valid saved state
+        if (savedState && savedIntervalType && savedRemainingTime > 0) {
+            this._state = savedState;
+            this._intervalType = savedIntervalType;
+            this._remainingTime = savedRemainingTime;
+            this._completedWorkIntervals = savedCompletedIntervals;
+
+            // If timer was running, resume it (it was paused due to screen lock)
+            if (this._state === TimerState.RUNNING) {
+                this._startTicking();
+            }
+        }
+    }
+
+    _clearSavedState() {
+        this._settings.set_string('session-state', '');
+        this._settings.set_string('session-interval-type', '');
+        this._settings.set_int('session-remaining-time', -1);
+        this._settings.set_int('session-completed-intervals', 0);
+    }
+
     get state() { return this._state; }
     get intervalType() { return this._intervalType; }
     get remainingTime() { return this._remainingTime; }
@@ -175,6 +218,8 @@ export const PomodoroTimer = GObject.registerClass({
     get intervalsPerSet() { return this._getIntervalsPerSet(); }
 
     destroy() {
+        // Save state before destruction (for screen lock persistence)
+        this._saveState();
         this._stopTicking();
         if (this._settingsChangedId) {
             this._settings.disconnect(this._settingsChangedId);
