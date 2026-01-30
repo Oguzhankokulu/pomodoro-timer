@@ -58,6 +58,12 @@ zip -r "$ZIP_FILE" . \
     -x "*.zip" \
     -x ".vscode/*" \
     -x ".idea/*" \
-    -x "node_modules/*"
+    -x "node_modules/*" \
+    -x "assets/Screenshots/*" \
+    -x "*.po" \
+    -x "*.pot" \
+    -x "package.json" \
+    -x "package-lock.json" \
+    -x "eslint.config.js"
 
 echo "Done! Package ready for upload: $ZIP_FILE"

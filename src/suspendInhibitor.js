@@ -46,14 +46,15 @@ export class SuspendInhibitor {
     }
 
     inhibit() {
-        if (!this.enabled || this._isInhibited) return;
+        if (!this.enabled || this._isInhibited)
+            return;
 
         try {
             const params = [
                 GLib.Variant.new_string('pomodoro-timer'),
                 GLib.Variant.new_uint32(0),
                 GLib.Variant.new_string('Pomodoro Timer is running'),
-                GLib.Variant.new_uint32(INHIBIT_IDLE | INHIBIT_SUSPEND)
+                GLib.Variant.new_uint32(INHIBIT_IDLE | INHIBIT_SUSPEND),
             ];
             const paramsVariant = GLib.Variant.new_tuple(params);
 
@@ -75,7 +76,8 @@ export class SuspendInhibitor {
     }
 
     uninhibit() {
-        if (!this._isInhibited || this._inhibitorCookie === null) return;
+        if (!this._isInhibited || this._inhibitorCookie === null)
+            return;
 
         try {
             this._sessionManager.UninhibitRemote(this._inhibitorCookie);

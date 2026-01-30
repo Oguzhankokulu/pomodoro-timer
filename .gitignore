@@ -13,3 +13,7 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Node/NPM
+node_modules/
+package-lock.json

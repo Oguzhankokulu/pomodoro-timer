@@ -1,0 +1,22 @@
+{
+  "name": "pomodoro-timer-extension",
+  "version": "1.0.0",
+  "description": "Pomodoro Timer GNOME Shell Extension",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "gnome-shell",
+    "extension",
+    "pomodoro"
+  ],
+  "author": "",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@eslint/config-helpers": "^0.5.2",
+    "eslint": "^9.39.2",
+    "eslint-config-gnome": "git+https://gitlab.gnome.org/World/javascript/eslint-config-gnome.git"
+  }
+}

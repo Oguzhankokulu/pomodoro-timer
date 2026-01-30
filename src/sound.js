@@ -29,7 +29,8 @@ export class SoundManager {
     }
 
     _playSound(soundFile) {
-        if (!this.soundEnabled) return;
+        if (!this.soundEnabled)
+            return;
 
         const soundPath = GLib.build_filenamev([this._soundsDir, soundFile]);
         const file = Gio.File.new_for_path(soundPath);
@@ -44,8 +45,14 @@ export class SoundManager {
         // paplay: 0-65536 (16-bit)
         const volumePercent = this.soundVolume;
         const players = [
-            { cmd: 'pw-play', volumeArg: `--volume=${(volumePercent / 100).toFixed(2)}` },
-            { cmd: 'paplay', volumeArg: `--volume=${Math.round((volumePercent / 100) * 65536)}` },
+            {
+                cmd: 'pw-play',
+                volumeArg: `--volume=${(volumePercent / 100).toFixed(2)}`,
+            },
+            {
+                cmd: 'paplay',
+                volumeArg: `--volume=${Math.round((volumePercent / 100) * 65536)}`,
+            },
         ];
 
         for (const player of players) {
@@ -58,15 +65,15 @@ export class SoundManager {
                     null
                 );
                 if (success) {
-                    GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, () => { });
+                    GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, () => {});
                     return; // Successfully started playback
                 }
-            } catch (e) {
+            } catch {
                 // Try the next player
                 continue;
             }
         }
-        console.log(`Pomodoro: Failed to play sound - no audio player available`);
+        console.log('Pomodoro: Failed to play sound - no audio player available');
     }
 
     playStartSound() {
@@ -78,23 +85,27 @@ export class SoundManager {
     }
 
     playTickSound() {
-        if (this.tickSoundEnabled) {
+        if (this.tickSoundEnabled)
             this._playSound(SOUND_FILES.TICK);
-        }
     }
 
     startTickLoop(intervalMs = 1000) {
         this.stopTickLoop();
-        if (!this.tickSoundEnabled) return;
+        if (!this.tickSoundEnabled)
+            return;
 
         this.playTickSound();
-        this._tickTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, intervalMs, () => {
-            if (this.tickSoundEnabled) {
-                this.playTickSound();
-                return GLib.SOURCE_CONTINUE;
+        this._tickTimeoutId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            intervalMs,
+            () => {
+                if (this.tickSoundEnabled) {
+                    this.playTickSound();
+                    return GLib.SOURCE_CONTINUE;
+                }
+                return GLib.SOURCE_REMOVE;
             }
-            return GLib.SOURCE_REMOVE;
-        });
+        );
     }
 
     stopTickLoop() {
