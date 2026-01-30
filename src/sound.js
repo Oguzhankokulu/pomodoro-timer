@@ -14,6 +14,7 @@ export class SoundManager {
         this._settings = settings;
         this._soundsDir = GLib.build_filenamev([extensionPath, 'assets', 'sounds']);
         this._tickTimeoutId = null;
+        this._soundPlayer = global.display.get_sound_player();
     }
 
     get soundEnabled() {
@@ -22,10 +23,6 @@ export class SoundManager {
 
     get tickSoundEnabled() {
         return this._settings.get_boolean('tick-sound-enabled');
-    }
-
-    get soundVolume() {
-        return this._settings.get_int('sound-volume');
     }
 
     _playSound(soundFile) {
@@ -40,40 +37,11 @@ export class SoundManager {
             return;
         }
 
-        // Volume formats differ between players:
-        // pw-play: 0.0-1.0 float
-        // paplay: 0-65536 (16-bit)
-        const volumePercent = this.soundVolume;
-        const players = [
-            {
-                cmd: 'pw-play',
-                volumeArg: `--volume=${(volumePercent / 100).toFixed(2)}`,
-            },
-            {
-                cmd: 'paplay',
-                volumeArg: `--volume=${Math.round((volumePercent / 100) * 65536)}`,
-            },
-        ];
-
-        for (const player of players) {
-            try {
-                const [success, pid] = GLib.spawn_async(
-                    null,
-                    [player.cmd, player.volumeArg, soundPath],
-                    null,
-                    GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD,
-                    null
-                );
-                if (success) {
-                    GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, () => {});
-                    return; // Successfully started playback
-                }
-            } catch {
-                // Try the next player
-                continue;
-            }
+        try {
+            this._soundPlayer.play_from_file(file, soundFile, null);
+        } catch (e) {
+            console.error(`Pomodoro: Failed to play sound: ${e.message}`);
         }
-        console.log('Pomodoro: Failed to play sound - no audio player available');
     }
 
     playStartSound() {

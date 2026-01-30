@@ -1,6 +1,5 @@
 // Preferences window for Pomodoro Timer
 import Adw from 'gi://Adw';
-import Gtk from 'gi://Gtk';
 import Gio from 'gi://Gio';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
@@ -22,8 +21,22 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         timerPage.add(autoGroup);
 
-        autoGroup.add(this._createSwitchRow(settings, 'auto-start-breaks', 'Auto-start Breaks', 'Start break timer automatically after work'));
-        autoGroup.add(this._createSwitchRow(settings, 'auto-start-work', 'Auto-start Work', 'Start work timer automatically after break'));
+        autoGroup.add(
+            this._createSwitchRow(
+                settings,
+                'auto-start-breaks',
+                'Auto-start Breaks',
+                'Start break timer automatically after work'
+            )
+        );
+        autoGroup.add(
+            this._createSwitchRow(
+                settings,
+                'auto-start-work',
+                'Auto-start Work',
+                'Start work timer automatically after break'
+            )
+        );
 
         // Appearance Page
         const appearancePage = new Adw.PreferencesPage({
@@ -39,7 +52,14 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         appearancePage.add(panelGroup);
 
-        panelGroup.add(this._createSwitchRow(settings, 'show-timer-always', 'Always Show Timer', 'Show timer even when not running'));
+        panelGroup.add(
+            this._createSwitchRow(
+                settings,
+                'show-timer-always',
+                'Always Show Timer',
+                'Show timer even when not running'
+            )
+        );
 
         // Behavior Page
         const behaviorPage = new Adw.PreferencesPage({
@@ -55,9 +75,22 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         behaviorPage.add(soundGroup);
 
-        soundGroup.add(this._createSwitchRow(settings, 'sound-enabled', 'Enable Sounds', 'Play sounds for timer events'));
-        soundGroup.add(this._createSwitchRow(settings, 'tick-sound-enabled', 'Tick Sound', 'Play ticking sound while running'));
-        soundGroup.add(this._createVolumeRow(settings));
+        soundGroup.add(
+            this._createSwitchRow(
+                settings,
+                'sound-enabled',
+                'Enable Sounds',
+                'Play sounds for timer events'
+            )
+        );
+        soundGroup.add(
+            this._createSwitchRow(
+                settings,
+                'tick-sound-enabled',
+                'Tick Sound',
+                'Play ticking sound while running'
+            )
+        );
 
         // System Group
         const systemGroup = new Adw.PreferencesGroup({
@@ -66,7 +99,14 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         behaviorPage.add(systemGroup);
 
-        systemGroup.add(this._createSwitchRow(settings, 'suspend-inhibitor-enabled', 'Prevent Auto-suspend', 'Keep system awake during pomodoro'));
+        systemGroup.add(
+            this._createSwitchRow(
+                settings,
+                'suspend-inhibitor-enabled',
+                'Prevent Auto-suspend',
+                'Keep system awake during pomodoro'
+            )
+        );
 
         window.set_default_size(450, 500);
     }
@@ -77,24 +117,6 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             subtitle,
         });
         settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
-        return row;
-    }
-
-    _createVolumeRow(settings) {
-        const adjustment = new Gtk.Adjustment({
-            lower: 0,
-            upper: 100,
-            step_increment: 5,
-            page_increment: 10,
-        });
-
-        const row = new Adw.SpinRow({
-            title: 'Volume',
-            subtitle: 'Sound effect volume (0-100%)',
-            adjustment,
-        });
-
-        settings.bind('sound-volume', row, 'value', Gio.SettingsBindFlags.DEFAULT);
         return row;
     }
 }

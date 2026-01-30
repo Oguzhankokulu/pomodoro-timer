@@ -7,7 +7,8 @@ export default class PomodoroExtension extends Extension {
         this._indicator = new Indicator.PomodoroIndicator(
             this.getSettings(),
             this.path,
-            this.uuid
+            this.uuid,
+            this
         );
         Main.panel.addToStatusArea(this.uuid, this._indicator);
     }

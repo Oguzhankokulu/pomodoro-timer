@@ -7,6 +7,7 @@ set -e
 
 EXTENSION_DIR="$(cd "$(dirname "$0")" && pwd)"
 METADATA_FILE="$EXTENSION_DIR/metadata.json"
+BUILD_DIR="$EXTENSION_DIR/build"
 
 # Check version argument
 if [ -z "$1" ]; then
@@ -19,23 +20,12 @@ VERSION_NAME="$1"
 echo "Setting version-name: $VERSION_NAME"
 
 # 1. Update "version-name" in metadata.json
-# This regex looks for "version-name": "something" and replaces it
-sed -i 's/"version-name":\s*"[^"]*"/"version-name": "'"$VERSION_NAME"'"/' "$METADATA_FILE"
+sed -i.bak 's/"version-name":\s*"[^"]*"/"version-name": "'"$VERSION_NAME"'"/' "$METADATA_FILE"
 
 # 2. Remove "version": <int> field if it exists
-# Extensions.gnome.org manages the integer version automatically.
-sed -i '/"version":/d' "$METADATA_FILE"
+sed -i.bak '/"version":/d' "$METADATA_FILE"
 
-# 3. Compile schemas (only if the directory exists)
-if [ -d "$EXTENSION_DIR/schemas" ]; then
-    echo "Compiling schemas..."
-    glib-compile-schemas "$EXTENSION_DIR/schemas/"
-else
-    echo "No schemas directory found, skipping compilation."
-fi
-
-# 4. Create ZIP
-# Extract UUID using grep (requires a simple "key": "value" format)
+# 3. Extract UUID
 UUID=$(grep -oP '"uuid":\s*"\K[^"]+' "$METADATA_FILE")
 
 if [ -z "$UUID" ]; then
@@ -45,25 +35,49 @@ fi
 
 ZIP_FILE="$EXTENSION_DIR/../${UUID}.zip"
 
-echo "Creating $ZIP_FILE..."
-cd "$EXTENSION_DIR"
+# 4. Create build directory with flattened structure
+echo "Creating flattened build directory..."
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 
-# Zip contents, excluding dev files and hidden git folders
-zip -r "$ZIP_FILE" . \
-    -x "*.git*" \
-    -x ".github*" \
-    -x "release.sh" \
-    -x "README.md" \
-    -x ".DS_Store" \
-    -x "*.zip" \
-    -x ".vscode/*" \
-    -x ".idea/*" \
-    -x "node_modules/*" \
-    -x "assets/Screenshots/*" \
-    -x "*.po" \
-    -x "*.pot" \
-    -x "package.json" \
-    -x "package-lock.json" \
-    -x "eslint.config.js"
+# Copy root files
+cp "$EXTENSION_DIR/metadata.json" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/stylesheet.css" "$BUILD_DIR/"
+
+# Flatten src/ directory - copy files to root of build
+cp "$EXTENSION_DIR/src/extension.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/indicator.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/timer.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/sound.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/constants.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/utils.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/suspendInhibitor.js" "$BUILD_DIR/"
+
+# Copy prefs.js from root
+cp "$EXTENSION_DIR/prefs.js" "$BUILD_DIR/"
+
+# Copy assets and schemas directories
+cp -r "$EXTENSION_DIR/assets" "$BUILD_DIR/"
+cp -r "$EXTENSION_DIR/schemas" "$BUILD_DIR/"
+
+# Remove compiled schema and screenshots from build
+rm -f "$BUILD_DIR/schemas/gschemas.compiled"
+rm -rf "$BUILD_DIR/assets/Screenshots"
+
+# 5. Create ZIP from build directory
+echo "Creating $ZIP_FILE..."
+cd "$BUILD_DIR"
+zip -r "$ZIP_FILE" .
+
+# 6. Cleanup
+cd "$EXTENSION_DIR"
+rm -rf "$BUILD_DIR"
+rm -f "$METADATA_FILE.bak"
 
 echo "Done! Package ready for upload: $ZIP_FILE"
+echo ""
+echo "Structure in ZIP (flattened, GNOME standard):"
+echo "  extension.js (from src/)"
+echo "  indicator.js (from src/)"
+echo "  timer.js (from src/)"
+echo "  etc..."

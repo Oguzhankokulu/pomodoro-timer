@@ -268,11 +268,12 @@ const IntervalCountMenuItem = GObject.registerClass(
 
 export const PomodoroIndicator = GObject.registerClass(
   class PomodoroIndicator extends PanelMenu.Button {
-      _init(settings, extensionPath, uuid) {
+      _init(settings, extensionPath, uuid, extension) {
           super._init(0.5, 'Pomodoro Timer');
           this._settings = settings;
           this._extensionPath = extensionPath;
           this._uuid = uuid;
+          this._extension = extension;
           this._timer = new PomodoroTimer(settings);
           this._soundManager = new SoundManager(extensionPath, settings);
           this._suspendInhibitor = new SuspendInhibitor(settings);
@@ -479,11 +480,7 @@ export const PomodoroIndicator = GObject.registerClass(
           // Settings button
           this._settingsItem = new PopupMenu.PopupMenuItem('Settings');
           this._settingsItem.connect('activate', () => {
-              try {
-                  GLib.spawn_command_line_async(`gnome-extensions prefs ${this._uuid}`);
-              } catch (e) {
-                  console.error(`Pomodoro: Failed to open settings: ${e.message}`);
-              }
+              this._extension.openPreferences();
           });
           this.menu.addMenuItem(this._settingsItem);
       }

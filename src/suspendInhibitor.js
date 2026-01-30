@@ -3,32 +3,36 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
-const DBusSessionManagerIface = `<node>
-  <interface name="org.gnome.SessionManager">
-    <method name="Inhibit">
-        <arg type="s" direction="in" />
-        <arg type="u" direction="in" />
-        <arg type="s" direction="in" />
-        <arg type="u" direction="in" />
-        <arg type="u" direction="out" />
-    </method>
-    <method name="Uninhibit">
-        <arg type="u" direction="in" />
-    </method>
-  </interface>
-</node>`;
 
-const DBusSessionManagerProxy = Gio.DBusProxy.makeProxyWrapper(DBusSessionManagerIface);
 
 // Inhibit flags
-const INHIBIT_SUSPEND = 4;  // Inhibit suspending the session or computer
-const INHIBIT_IDLE = 8;     // Inhibit the session being marked as idle
+const INHIBIT_SUSPEND = 4; // Inhibit suspending the session or computer
+const INHIBIT_IDLE = 8; // Inhibit the session being marked as idle
 
 export class SuspendInhibitor {
     constructor(settings) {
         this._settings = settings;
         this._inhibitorCookie = null;
         this._isInhibited = false;
+
+        const DBusSessionManagerIface = `<node>
+            <interface name="org.gnome.SessionManager">
+                <method name="Inhibit">
+                    <arg type="s" direction="in" />
+                    <arg type="u" direction="in" />
+                    <arg type="s" direction="in" />
+                    <arg type="u" direction="in" />
+                    <arg type="u" direction="out" />
+                </method>
+                <method name="Uninhibit">
+                    <arg type="u" direction="in" />
+                </method>
+            </interface>
+        </node>`;
+
+        const DBusSessionManagerProxy = Gio.DBusProxy.makeProxyWrapper(
+            DBusSessionManagerIface
+        );
 
         this._sessionManager = new DBusSessionManagerProxy(
             Gio.DBus.session,
