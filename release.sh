@@ -56,13 +56,14 @@ cp "$EXTENSION_DIR/src/suspendInhibitor.js" "$BUILD_DIR/"
 # Copy prefs.js from root
 cp "$EXTENSION_DIR/prefs.js" "$BUILD_DIR/"
 
-# Copy assets and schemas directories
-cp -r "$EXTENSION_DIR/assets" "$BUILD_DIR/"
-cp -r "$EXTENSION_DIR/schemas" "$BUILD_DIR/"
+# Copy schemas directory (excluding compiled schema)
+mkdir -p "$BUILD_DIR/schemas"
+cp "$EXTENSION_DIR/schemas"/*.xml "$BUILD_DIR/schemas/"
 
-# Remove compiled schema and screenshots from build
-rm -f "$BUILD_DIR/schemas/gschemas.compiled"
-rm -rf "$BUILD_DIR/assets/Screenshots"
+# Copy assets directory (excluding Screenshots)
+mkdir -p "$BUILD_DIR/assets"
+cp -r "$EXTENSION_DIR/assets/images" "$BUILD_DIR/assets/" 2>/dev/null || true
+cp -r "$EXTENSION_DIR/assets/sounds" "$BUILD_DIR/assets/" 2>/dev/null || true
 
 # 5. Create ZIP from build directory
 echo "Creating $ZIP_FILE..."
