@@ -11,5 +11,8 @@
     "49"
   ],
   "url": "https://github.com/Oguzhankokulu/pomodoro-timer",
-  "settings-schema": "org.gnome.shell.extensions.pomodoro-timer"
+  "settings-schema": "org.gnome.shell.extensions.pomodoro-timer",
+  "donations": {
+    "buymeacoffee": "oguzhankokl"
+  }
 }
