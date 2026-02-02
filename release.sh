@@ -55,6 +55,7 @@ cp "$EXTENSION_DIR/src/suspendInhibitor.js" "$BUILD_DIR/"
 
 # Copy prefs.js from root
 cp "$EXTENSION_DIR/prefs.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/LICENSE" "$BUILD_DIR/"
 
 # Copy schemas directory (excluding compiled schema)
 mkdir -p "$BUILD_DIR/schemas"
