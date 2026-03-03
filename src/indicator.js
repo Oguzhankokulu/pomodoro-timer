@@ -280,6 +280,11 @@ export const PomodoroIndicator = GObject.registerClass(
           this._sessionStarted = false;
 
           this._buildPanelButton();
+
+          // Clear default click gesture to allow vfunc_event to handle mouse events
+          // This is required for GNOME 49+ where ClutterClickGesture intercepts button events
+          this.clear_actions();
+
           this._buildMenu();
           this._connectTimerSignals();
           this._connectSettingsSignals();
@@ -293,6 +298,12 @@ export const PomodoroIndicator = GObject.registerClass(
       vfunc_event(event) {
           if (event.type() === Clutter.EventType.BUTTON_PRESS) {
               const button = event.get_button();
+
+              // Left click (button 1) - Toggle menu
+              if (button === 1) {
+                  this.menu.toggle();
+                  return Clutter.EVENT_STOP;
+              }
 
               // Right click (button 3) - Start/Pause
               if (button === 3) {
