@@ -46,6 +46,16 @@
       <summary>Enable tick sound</summary>
     </key>
     
+    <key name="event-sound-volume" type="d">
+      <default>1.0</default>
+      <summary>Event sound volume level (0.0 to 1.0)</summary>
+    </key>
+    
+    <key name="tick-sound-volume" type="d">
+      <default>1.0</default>
+      <summary>Tick sound volume level (0.0 to 1.0)</summary>
+    </key>
+    
     <!-- Panel Display Settings -->
     <key name="show-icon" type="b">
       <default>true</default>

@@ -41,6 +41,15 @@ export class SoundManager {
 
             if (this._eventPlayer && this._tickPlayer) {
                 this._useGStreamer = true;
+                this._applyVolume();
+                this._eventVolChangedId = this._settings.connect(
+                    'changed::event-sound-volume',
+                    () => this._applyVolume()
+                );
+                this._tickVolChangedId = this._settings.connect(
+                    'changed::tick-sound-volume',
+                    () => this._applyVolume()
+                );
             } else {
                 this._Gst = null;
             }
@@ -97,6 +106,13 @@ export class SoundManager {
         }
     }
 
+    _applyVolume() {
+        if (this._eventPlayer)
+            this._eventPlayer.set_property('volume', this._settings.get_double('event-sound-volume'));
+        if (this._tickPlayer)
+            this._tickPlayer.set_property('volume', this._settings.get_double('tick-sound-volume'));
+    }
+
     get soundEnabled() {
         return this._settings.get_boolean('sound-enabled');
     }
@@ -122,8 +138,10 @@ export class SoundManager {
         try {
             if (this._useGStreamer && this[playerField]) {
                 const player = this[playerField];
+                const volumeKey = playerField === '_tickPlayer' ? 'tick-sound-volume' : 'event-sound-volume';
                 player.set_state(this._Gst.State.NULL);
                 player.set_property('uri', file.get_uri());
+                player.set_property('volume', this._settings.get_double(volumeKey));
                 player.set_state(this._Gst.State.PLAYING);
             } else if (this._soundPlayer) {
                 this._soundPlayer.play_from_file(file, soundFile, null);
@@ -156,11 +174,9 @@ export class SoundManager {
             GLib.PRIORITY_DEFAULT,
             intervalMs,
             () => {
-                if (this.tickSoundEnabled) {
+                if (this.tickSoundEnabled)
                     this.playTickSound();
-                    return GLib.SOURCE_CONTINUE;
-                }
-                return GLib.SOURCE_REMOVE;
+                return GLib.SOURCE_CONTINUE;
             }
         );
     }
@@ -174,6 +190,16 @@ export class SoundManager {
 
     destroy() {
         this.stopTickLoop();
+
+        if (this._eventVolChangedId) {
+            this._settings.disconnect(this._eventVolChangedId);
+            this._eventVolChangedId = null;
+        }
+
+        if (this._tickVolChangedId) {
+            this._settings.disconnect(this._tickVolChangedId);
+            this._tickVolChangedId = null;
+        }
 
         this._destroyPlayer(this._eventPlayer);
         this._eventPlayer = null;
