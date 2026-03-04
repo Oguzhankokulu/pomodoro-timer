@@ -1,6 +1,7 @@
 // Timer state machine for Pomodoro Timer
 import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import {TimerState, IntervalType} from './constants.js';
 
 export const PomodoroTimer = GObject.registerClass(
@@ -215,14 +216,15 @@ export const PomodoroTimer = GObject.registerClass(
 
             // Only restore if we have valid saved state
             if (savedState && savedIntervalType && savedRemainingTime > 0) {
-                this._state = savedState;
                 this._intervalType = savedIntervalType;
                 this._remainingTime = savedRemainingTime;
                 this._completedWorkIntervals = savedCompletedIntervals;
 
-                // If timer was running, resume it (it was paused due to screen lock)
-                if (this._state === TimerState.RUNNING)
-                    this._startTicking();
+                // Restore as PAUSED so nothing auto-resumes.
+                // The user can resume with one click.
+                if (savedState === TimerState.RUNNING ||
+                    savedState === TimerState.PAUSED)
+                    this._state = TimerState.PAUSED;
             }
         }
 
@@ -256,6 +258,7 @@ export const PomodoroTimer = GObject.registerClass(
         destroy() {
             // Save state before destruction (for screen lock persistence)
             this._saveState();
+            Gio.Settings.sync(); // Flush to disk before process exits
             this._stopTicking();
             if (this._settingsChangedId) {
                 this._settings.disconnect(this._settingsChangedId);
