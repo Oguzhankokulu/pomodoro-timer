@@ -8,7 +8,7 @@ A sleek GNOME Shell extension for productivity using the Pomodoro Technique.
 ## Features
 
 - **Timer Controls** - Start, Pause, Skip, Reset from the panel dropdown
-- **Sound Notifications** - Audio alerts for timer events
+- **Sound Notifications** - Adjustable audio alerts for timer events
 - **Suspend Inhibitor** - Keeps your system awake during pomodoros (Caffeine Like)
 - **Adjustable Durations** - Work, Short Break, Long Break, Intervals per Set
 - **Minimal UI** - Timer hidden when idle, shown only when running
@@ -34,7 +34,7 @@ A sleek GNOME Shell extension for productivity using the Pomodoro Technique.
 
 ## Settings
 
-Open preferences via:
+Open preferences via Settings button on dropdown menu, via extension manager or via command line:
 ```bash
 gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
 ```
@@ -46,9 +46,31 @@ gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
 | Always Show Timer | Show timer in panel even when idle |
 | Enable Sounds | Play audio notifications |
 | Tick Sound | Play ticking sound while running |
+| Event Volume | Volume of event sounds |
+| Tick Volume | Volume of ticking sound |
 | Prevent Auto-suspend | Keep system awake during pomodoro |
 
 ## Installation
+
+### From GNOME Extensions Website
+
+Install directly from [GNOME Extensions](https://extensions.gnome.org/extension/9157/pomodoro-timer/). This version might be outdated. For the latest version, see [GitHub Release](https://github.com/Oguzhankokulu/pomodoro-timer/releases).
+
+### From GitHub Release
+
+1. Download the latest `.zip` from [Releases](https://github.com/Oguzhankokulu/pomodoro-timer/releases)
+2. Extract and move to extensions directory:
+
+```bash
+# Extract the zip
+unzip pomodoro-timer@Oguzhankokulu.github.com.zip -d pomodoro-timer@Oguzhankokulu.github.com
+
+# Move to extensions directory
+mv pomodoro-timer@Oguzhankokulu.github.com ~/.local/share/gnome-shell/extensions/
+
+# Enable extension (logout/login required on Wayland)
+gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
+```
 
 ### From Source
 
@@ -69,7 +91,7 @@ glib-compile-schemas ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzha
 gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
 ```
 
-### To Update Existing Extension via GitHub
+### Updating via Git
 
 ```bash
 # Go to the extensions directory
@@ -81,8 +103,7 @@ git pull
 # Compile schemas
 glib-compile-schemas ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzhankokulu.github.com/schemas/
 
-# Enable extension (logout/login required on Wayland)
-gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
+# Restart GNOME Shell (logout/login on Wayland)
 ```
 
 ## Customization
@@ -101,7 +122,6 @@ Replace sound files in `assets/sounds/`:
 ## Requirements
 
 - GNOME Shell 45, 46, 47, 48, or 49
-- `pw-play` (PipeWire, GNOME 46+) or `paplay` (PulseAudio) for sound playback
 
 ## License
 
