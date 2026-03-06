@@ -12,6 +12,7 @@ import {formatTime, getIntervalDisplayName} from './utils.js';
 import {PomodoroTimer} from './timer.js';
 import {SoundManager} from './sound.js';
 import {SuspendInhibitor} from './suspendInhibitor.js';
+import {FocusModeManager} from './focusMode.js';
 
 const DURATION_STEP = 30;
 const MIN_DURATION = 30;
@@ -277,6 +278,7 @@ export const PomodoroIndicator = GObject.registerClass(
           this._timer = new PomodoroTimer(settings);
           this._soundManager = new SoundManager(extensionPath, settings);
           this._suspendInhibitor = new SuspendInhibitor(settings);
+          this._focusModeManager = new FocusModeManager(settings, extensionPath);
           this._sessionStarted = false;
 
           this._buildPanelButton();
@@ -513,25 +515,35 @@ export const PomodoroIndicator = GObject.registerClass(
                       this._soundManager.playStartSound();
                       this._soundManager.startTickLoop();
                       this._suspendInhibitor.inhibit();
+                      if (this._timer.intervalType === IntervalType.WORK)
+                          this._focusModeManager.activate();
                   } else if (
                       newState === TimerState.RUNNING &&
             oldState === TimerState.PAUSED
                   ) {
                       this._soundManager.startTickLoop();
                       this._suspendInhibitor.inhibit();
+                      if (this._timer.intervalType === IntervalType.WORK)
+                          this._focusModeManager.activate();
                   } else if (
                       newState === TimerState.PAUSED ||
             newState === TimerState.IDLE
                   ) {
                       this._soundManager.stopTickLoop();
                       this._suspendInhibitor.uninhibit();
+                      this._focusModeManager.deactivate();
                   }
               })
           );
 
           this._timerSignals.push(
-              this._timer.connect('interval-changed', () => {
+              this._timer.connect('interval-changed', (_timer, intervalType) => {
                   this._updateUI();
+                  if (intervalType === IntervalType.WORK &&
+                      this._timer.state === TimerState.RUNNING)
+                      this._focusModeManager.activate();
+                  else
+                      this._focusModeManager.deactivate();
               })
           );
 
@@ -670,6 +682,11 @@ export const PomodoroIndicator = GObject.registerClass(
           if (this._suspendInhibitor) {
               this._suspendInhibitor.destroy();
               this._suspendInhibitor = null;
+          }
+
+          if (this._focusModeManager) {
+              this._focusModeManager.destroy();
+              this._focusModeManager = null;
           }
 
           if (this._timer) {

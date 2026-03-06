@@ -25,3 +25,12 @@ export const Defaults = Object.freeze({
     SOUND_ENABLED: true,
     SUSPEND_INHIBITOR_ENABLED: true,
 });
+
+export const WallpaperOption = Object.freeze({
+    ANIME: 'anime',
+    CLOUDSCAPE: 'cloudscape',
+    DARK_ACADEMIA: 'dark-academia',
+    FOREST: 'forest',
+    MINECRAFT: 'minecraft',
+    CUSTOM: 'custom',
+});

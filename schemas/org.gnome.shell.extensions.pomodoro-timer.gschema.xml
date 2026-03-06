@@ -73,6 +73,37 @@
       <summary>Disable auto-suspend during pomodoro</summary>
     </key>
     
+    <!-- Focus Mode Settings -->
+    <key name="focus-mode-enabled" type="b">
+      <default>false</default>
+      <summary>Enable focus mode</summary>
+      <description>Activate focus mode during work sessions</description>
+    </key>
+    
+    <key name="focus-wallpaper-option" type="s">
+      <default>'anime'</default>
+      <summary>Focus wallpaper option</summary>
+      <description>Which wallpaper to use: anime, cloudscape, dark-academia, forest, minecraft, or custom</description>
+    </key>
+    
+    <key name="focus-custom-wallpaper" type="s">
+      <default>''</default>
+      <summary>Custom focus wallpaper path</summary>
+      <description>File path for custom focus wallpaper</description>
+    </key>
+    
+    <key name="focus-dnd-enabled" type="b">
+      <default>true</default>
+      <summary>Enable Do Not Disturb during focus</summary>
+      <description>Suppress notification banners during work sessions</description>
+    </key>
+    
+    <key name="focus-mute-sounds" type="b">
+      <default>true</default>
+      <summary>Mute notification sounds during focus</summary>
+      <description>Disable system event sounds during work sessions</description>
+    </key>
+    
     <!-- Session State (internal, for persistence across screen lock) -->
     <key name="session-state" type="s">
       <default>''</default>
