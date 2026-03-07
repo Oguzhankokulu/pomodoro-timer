@@ -1,128 +1,241 @@
-# 🍅 Pomodoro Timer
+<div align="center">
+  <img src="assets/images/gnomodoro-logo.svg" alt="Pomodoro Timer Logo" width="240" height="240">
 
-A sleek GNOME Shell extension for productivity using the Pomodoro Technique.
+  <h1>Pomodoro Timer</h1>
 
-![GNOME](https://img.shields.io/badge/GNOME-45--49-blue?logo=gnome)
-![License](https://img.shields.io/badge/License-GPL--3.0-green)
+  <p><strong>A simple and effective Pomodoro timer for GNOME Shell</strong></p>
+  <p>Stay focused, take breaks, and track your productivity — right from the top panel.</p>
+
+  <br>
+
+  <img src="https://img.shields.io/badge/GNOME_Shell-45 | 46 | 47 | 48 | 49 | 50-blue?style=flat-square&logo=gnome&logoColor=white">
+  <img src="https://img.shields.io/badge/License-GPL--3.0-green?style=flat-square">
+
+</div>
+
+<br>
+
+---
+
+## Overview
+
+Pomodoro Timer is a **full-featured productivity extension** for GNOME Shell built around the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
+
+It lives in your top panel and gives you timer controls, task management, focus mode with wallpaper switching and Do Not Disturb, session statistics with charts, configurable keyboard shortcuts, sound notifications, and a suspend inhibitor — all without leaving your desktop.
+
+> Whether you're deep in a coding session or studying for exams, Pomodoro Timer keeps you on track with minimal friction.
+
+<br>
+
+---
+
+## Gallery
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/Screenshots/dropdown.png" alt="Dropdown Menu" width="100%" style="border-radius: 8px;">
+      <br><sub><b>Panel Dropdown</b></sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/Screenshots/behavior_configs.png" alt="Behavior Settings" width="100%" style="border-radius: 8px;">
+      <br><sub><b>Behavior Settings</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/Screenshots/Focus_Mode_Configs.png" alt="Focus Mode Settings" width="100%" style="border-radius: 8px;">
+      <br><sub><b>Focus Mode</b></sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/Screenshots/Statistics.png" alt="Statistics" width="100%" style="border-radius: 8px;">
+      <br><sub><b>Statistics</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/Screenshots/Tasks.png" alt="Tasks" width="100%" style="border-radius: 8px;">
+      <br><sub><b>Tasks</b></sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/Screenshots/appearance_configs.png" alt="Appearance Settings" width="100%" style="border-radius: 8px;">
+      <br><sub><b>Appearance</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/Screenshots/About.png" alt="About Page" width="100%" style="border-radius: 8px;">
+      <br><sub><b>About</b></sub>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+---
 
 ## Features
 
-- **Timer Controls** - Start, Pause, Skip, Reset from the panel dropdown
-- **Sound Notifications** - Adjustable audio alerts for timer events
-- **Suspend Inhibitor** - Keeps your system awake during pomodoros (Caffeine Like)
-- **Adjustable Durations** - Work, Short Break, Long Break, Intervals per Set
-- **Minimal UI** - Timer hidden when idle, shown only when running
-- **Quick Actions** - Right-click to Start/Pause, Middle-click to Skip
+### Timer
 
-## Mouse Shortcuts
+- **Adjustable Durations** — Work, Short Break, Long Break, and intervals per set
+- **Auto-start** — Optionally auto-start breaks after work and work after breaks
+- **Session Persistence** — Timer state survives screen lock/unlock cycles
+- **Minimal Panel UI** — Timer hidden when idle, shown only when running
+
+### Focus Mode
+
+- **Wallpaper Switching** — Automatically change your wallpaper during work sessions
+- **5 Built-in Wallpapers** — Anime, Cloudscape, Dark Academia, Forest, Minecraft
+- **Custom Wallpaper** — Use any image from your system
+- **Do Not Disturb** — Suppress notification banners during focus
+- **Mute Sounds** — Silence system event sounds while working
+
+### Task Management
+
+- **Create Tasks** — Add tasks with title, difficulty (1–10), and estimated pomodoros
+- **Track Progress** — See pomodoro progress per task in real time
+- **Assign to Sessions** — Link tasks to your current timer session
+- **Task History** — Completed tasks are archived with timestamps
+
+### Statistics
+
+- **Session Tracking** — Total sessions, total hours, streaks, efficiency score
+- **Task Stats** — Tasks completed, average difficulty, average pomodoros per task
+- **Visual Charts** — Bar charts for last 7 days, 4 weeks, and 12 months
+- **Persistent Data** — Stats survive extension restarts and updates
+
+### Keyboard Shortcuts
+
+- **Start / Pause** — Toggle the timer with a global keybinding
+- **Skip Interval** — Jump to the next interval
+- **Reset / Reset All** — Reset current interval or the entire session
+- **Configurable** — Set your own key combinations in preferences (modifier key required)
+
+### Sounds
+
+- **Event Sounds** — Audio alerts when the timer starts and completes
+- **Tick Sound** — Optional ticking sound while running
+- **Separate Volumes** — Independent volume controls for events and ticking
+
+### Mouse Shortcuts
 
 | Click | Action |
 |-------|--------|
 | Left-click | Open dropdown menu |
 | Right-click | Start / Pause timer |
-| Middle-click | Skip current session |
+| Middle-click | Skip current interval |
 
-## Screenshots
+### System Integration
 
-| Dropdown Menu | Timer Settings |
-|:-------------:|:--------------:|
-| ![Dropdown](assets/Screenshots/dropdown.png) | ![Timer](assets/Screenshots/timer_configs.png) |
+- **Suspend Inhibitor** — Keeps your system awake during pomodoros
+- **System Theme Support** — Blend with GNOME theme colors instead of the default red
 
-| Appearance Settings | Behavior Settings |
-|:-------------------:|:-----------------:|
-| ![Appearance](assets/Screenshots/appearance_configs.png) | ![Behavior](assets/Screenshots/behavior_configs.png) |
+<br>
 
-## Settings
-
-Open preferences via Settings button on dropdown menu, via extension manager or via command line:
-```bash
-gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
-```
-
-| Setting | Description |
-|---------|-------------|
-| Auto-start Breaks | Automatically start break after work |
-| Auto-start Work | Automatically start work after break |
-| Always Show Timer | Show timer in panel even when idle |
-| Enable Sounds | Play audio notifications |
-| Tick Sound | Play ticking sound while running |
-| Event Volume | Volume of event sounds |
-| Tick Volume | Volume of ticking sound |
-| Prevent Auto-suspend | Keep system awake during pomodoro |
+---
 
 ## Installation
 
-### From GNOME Extensions Website
+### From GNOME Extensions (Recommended)
 
-Install directly from [GNOME Extensions](https://extensions.gnome.org/extension/9157/pomodoro-timer/). This version might be outdated. For the latest version, see [GitHub Release](https://github.com/Oguzhankokulu/pomodoro-timer/releases).
+<div align="center">
+  <a href="https://extensions.gnome.org/extension/9157/pomodoro-timer/">
+    <img src="https://img.shields.io/badge/Install_from-GNOME_Extensions-4A86CF?style=for-the-badge&logo=gnome&logoColor=white" height="42">
+  </a>
+</div>
+
+<br>
+
+> The EGO version may lag behind the latest release. For the newest version, see [GitHub Releases](https://github.com/Oguzhankokulu/pomodoro-timer/releases).
 
 ### From GitHub Release
 
 1. Download the latest `.zip` from [Releases](https://github.com/Oguzhankokulu/pomodoro-timer/releases)
-2. Extract and move to extensions directory:
+2. Install:
 
 ```bash
-# Extract the zip
+# Extract and move to extensions directory
 unzip pomodoro-timer@Oguzhankokulu.github.com.zip -d pomodoro-timer@Oguzhankokulu.github.com
-
-# Move to extensions directory
 mv pomodoro-timer@Oguzhankokulu.github.com ~/.local/share/gnome-shell/extensions/
 
-# Enable extension (logout/login required on Wayland)
+# Enable (logout/login required on Wayland)
 gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
 ```
 
 ### From Source
 
 ```bash
-# Clone the repository
+# Clone
 git clone https://github.com/Oguzhankokulu/pomodoro-timer.git
+cd pomodoro-timer
 
-# Rename the folder
-mv pomodoro-timer pomodoro-timer@Oguzhankokulu.github.com
-
-# Copy to extensions directory
-cp -r pomodoro-timer@Oguzhankokulu.github.com ~/.local/share/gnome-shell/extensions/
+# Rename and install
+mv ../pomodoro-timer ../pomodoro-timer@Oguzhankokulu.github.com
+cp -r ../pomodoro-timer@Oguzhankokulu.github.com ~/.local/share/gnome-shell/extensions/
 
 # Compile schemas
 glib-compile-schemas ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzhankokulu.github.com/schemas/
 
-# Enable extension (logout/login required on Wayland)
+# Enable (logout/login required on Wayland)
 gnome-extensions enable pomodoro-timer@Oguzhankokulu.github.com
 ```
 
 ### Updating via Git
 
 ```bash
-# Go to the extensions directory
 cd ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzhankokulu.github.com
-
-# Pull the changes
 git pull
-
-# Compile schemas
-glib-compile-schemas ~/.local/share/gnome-shell/extensions/pomodoro-timer@Oguzhankokulu.github.com/schemas/
-
+glib-compile-schemas schemas/
 # Restart GNOME Shell (logout/login on Wayland)
 ```
+
+<br>
+
+---
 
 ## Customization
 
 ### Custom Icon
 
-Replace the panel icon by swapping `assets/images/fruit.png` or `assets/images/coffee.png` with your own **16×16 pixel** PNG image. Keep the filename as the same.
+Replace the panel icon by swapping `assets/images/fruit.png` or `assets/images/coffee.png` with your own **16×16 pixel** PNG image. Keep the same filename.
 
 ### Custom Sounds
 
 Replace sound files in `assets/sounds/`:
-- `start.ogg` - Plays when timer starts
-- `tick.ogg` - Plays every second (if enabled)
-- `complete.ogg` - Plays when interval completes
 
-## Requirements
+| File | Purpose |
+|------|---------|
+| `start.ogg` | Plays when the timer starts |
+| `tick.ogg` | Plays every second (if enabled) |
+| `complete.ogg` | Plays when an interval completes |
 
-- GNOME Shell 45, 46, 47, 48, or 49
+### Settings
 
-## License
+Open preferences via the dropdown menu, Extension Manager, or command line:
 
-GPL-3.0
+```bash
+gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
+```
+
+<br>
+
+---
+
+## ❤️ Support Development
+
+Pomodoro Timer is free and open-source. If it helps you stay productive, consider buying me a coffee.
+
+<div align="center">
+  <a href="https://buymeacoffee.com/oguzhankokl">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42">
+  </a>
+</div>
+
+<br>
+
+---
+
+<p align="center">
+  Made with ❤️ by <strong><a href="https://github.com/Oguzhankokulu">Oguzhan Kokulu</a></strong> &nbsp;·&nbsp; GPL-3.0
+</p>

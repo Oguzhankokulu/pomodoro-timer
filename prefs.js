@@ -1,4 +1,5 @@
 import Adw from 'gi://Adw';
+import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import Gio from 'gi://Gio';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -11,12 +12,11 @@ export default class PomodoroPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
 
-        // Appearance Page
+        // Appearance Page (added to window later, before About)
         const appearancePage = new Adw.PreferencesPage({
             title: 'Appearance',
             icon_name: 'applications-graphics-symbolic',
         });
-        window.add(appearancePage);
 
         // Panel Group
         const panelGroup = new Adw.PreferencesGroup({
@@ -173,6 +173,26 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             )
         );
 
+        // Keybindings Group
+        const keybindingsGroup = new Adw.PreferencesGroup({
+            title: 'Keybindings',
+            description: 'Set keyboard shortcuts. A modifier key (Ctrl, Alt, or Super) is required. Backspace to clear.',
+        });
+        behaviorPage.add(keybindingsGroup);
+
+        keybindingsGroup.add(this._createKeybindingRow(
+            settings, 'keybinding-toggle', 'Start / Pause'
+        ));
+        keybindingsGroup.add(this._createKeybindingRow(
+            settings, 'keybinding-skip', 'Skip Interval'
+        ));
+        keybindingsGroup.add(this._createKeybindingRow(
+            settings, 'keybinding-reset', 'Reset'
+        ));
+        keybindingsGroup.add(this._createKeybindingRow(
+            settings, 'keybinding-reset-all', 'Reset All'
+        ));
+
         window.set_default_size(600, 800);
 
         // Focus Mode Page
@@ -309,9 +329,11 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         this._statsTracker = new StatsTracker(this._dataStore);
         this._taskManager = new TaskManager(this._dataStore, settings);
 
-        // Stats and Tasks pages
+        // Stats, Tasks, Appearance, and About pages
         this._buildStatsPage(window);
         this._buildTasksPage(window);
+        window.add(appearancePage);
+        this._buildAboutPage(window);
 
         window.connect('close-request', () => {
             this._dataStore = null;
@@ -328,6 +350,103 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
         return row;
+    }
+
+    _createKeybindingRow(settings, key, title) {
+        const row = new Adw.ActionRow({title});
+
+        const current = settings.get_strv(key);
+        const shortcutLabel = new Gtk.ShortcutLabel({
+            accelerator: current.length > 0 ? current[0] : '',
+            disabled_text: 'New shortcut…',
+            valign: Gtk.Align.CENTER,
+        });
+
+        const btn = new Gtk.Button({
+            child: shortcutLabel,
+            has_frame: false,
+            valign: Gtk.Align.CENTER,
+        });
+        row.add_suffix(btn);
+        row.activatable_widget = btn;
+
+        btn.connect('clicked', () => {
+            const editor = new Gtk.Window({
+                title: `Set ${title}`,
+                modal: true,
+                hide_on_close: true,
+                transient_for: btn.get_root(),
+                width_request: 480,
+                height_request: 260,
+                child: new Gtk.Label({
+                    label: 'Press a key combination\n\nBackspace to clear · Escape to cancel',
+                    valign: Gtk.Align.CENTER,
+                    halign: Gtk.Align.CENTER,
+                }),
+            });
+
+            const ctl = new Gtk.EventControllerKey();
+            editor.add_controller(ctl);
+
+            ctl.connect('key-pressed', (_widget, keyval, keycode, state) => {
+                let mask = state & Gtk.accelerator_get_default_mod_mask();
+                mask &= ~Gdk.ModifierType.LOCK_MASK;
+
+                if (!mask && keyval === Gdk.KEY_Escape) {
+                    editor.close();
+                    return Gdk.EVENT_STOP;
+                }
+
+                if (keyval === Gdk.KEY_BackSpace) {
+                    settings.set_strv(key, []);
+                    shortcutLabel.accelerator = '';
+                    editor.close();
+                    return Gdk.EVENT_STOP;
+                }
+
+                if (
+                    !this._isValidBinding(mask, keycode, keyval) ||
+                    !Gtk.accelerator_valid(keyval, mask)
+                )
+                    return Gdk.EVENT_STOP;
+
+                const accel = Gtk.accelerator_name_with_keycode(
+                    null, keyval, keycode, mask
+                );
+                settings.set_strv(key, [accel]);
+                shortcutLabel.accelerator = accel;
+                editor.close();
+                return Gdk.EVENT_STOP;
+            });
+
+            editor.present();
+        });
+
+        return row;
+    }
+
+    _isValidBinding(mask, keycode, keyval) {
+        if (mask === 0)
+            return false;
+        if (
+            mask === Gdk.ModifierType.SHIFT_MASK && keycode !== 0 &&
+            ((keyval >= Gdk.KEY_a && keyval <= Gdk.KEY_z) ||
+             (keyval >= Gdk.KEY_A && keyval <= Gdk.KEY_Z) ||
+             (keyval >= Gdk.KEY_0 && keyval <= Gdk.KEY_9) ||
+             keyval === Gdk.KEY_space ||
+             this._isKeyvalForbidden(keyval))
+        )
+            return false;
+        return true;
+    }
+
+    _isKeyvalForbidden(keyval) {
+        return [
+            Gdk.KEY_Home, Gdk.KEY_Left, Gdk.KEY_Up, Gdk.KEY_Right,
+            Gdk.KEY_Down, Gdk.KEY_Page_Up, Gdk.KEY_Page_Down, Gdk.KEY_End,
+            Gdk.KEY_Tab, Gdk.KEY_KP_Enter, Gdk.KEY_Return,
+            Gdk.KEY_Mode_switch,
+        ].includes(keyval);
     }
 
     _buildStatsPage(window) {
@@ -726,5 +845,128 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             settings.disconnect(taskSettingId);
             return false;
         });
+    }
+
+    _buildAboutPage(window) {
+        const page = new Adw.PreferencesPage({
+            title: 'About',
+            icon_name: 'help-about-symbolic',
+        });
+        window.add(page);
+
+        // About section
+        const aboutGroup = new Adw.PreferencesGroup({
+            title: `Pomodoro Timer - v${this.metadata['version-name'] || ''}`,
+            description: 'A simple and effective Pomodoro timer for GNOME Shell\n© 2025 Oguzhan Kokulu · Licensed under GPL-3.0',
+        });
+        page.add(aboutGroup);
+
+        const repoRow = new Adw.ActionRow({
+            title: 'Homepage',
+            activatable: true,
+        });
+        repoRow.add_suffix(new Gtk.Image({
+            icon_name: 'adw-external-link-symbolic',
+            valign: Gtk.Align.CENTER,
+        }));
+        repoRow.connect('activated', () => {
+            Gtk.show_uri(window, this.metadata.url, 0);
+        });
+        aboutGroup.add(repoRow);
+
+        const releaseNotesRow = new Adw.ActionRow({
+            title: 'Release Notes',
+            activatable: true,
+        });
+        releaseNotesRow.add_suffix(new Gtk.Image({
+            icon_name: 'adw-external-link-symbolic',
+            valign: Gtk.Align.CENTER,
+        }));
+        releaseNotesRow.connect('activated', () => {
+            Gtk.show_uri(window, 'https://github.com/Oguzhankokulu/pomodoro-timer/releases', 0);
+        });
+        aboutGroup.add(releaseNotesRow);
+
+        const issueRow = new Adw.ActionRow({
+            title: 'Report an Issue',
+            activatable: true,
+        });
+        issueRow.add_suffix(new Gtk.Image({
+            icon_name: 'adw-external-link-symbolic',
+            valign: Gtk.Align.CENTER,
+        }));
+        issueRow.connect('activated', () => {
+            Gtk.show_uri(window, 'https://github.com/Oguzhankokulu/pomodoro-timer/issues', 0);
+        });
+        aboutGroup.add(issueRow);
+
+        // Donations section
+        const donateGroup = new Adw.PreferencesGroup({
+            title: 'Support',
+            description: 'Your support helps maintain and improve Pomodoro Timer, develop new features, and ensure smooth updates. Even a small donation makes a big difference!\n\nThank you for your support!',
+        });
+        page.add(donateGroup);
+
+        const bmcUrl = 'https://buymeacoffee.com/oguzhankokl';
+
+        const bmcBtnRow = new Adw.ActionRow({activatable: false});
+        const bmcBtn = new Gtk.Button({
+            halign: Gtk.Align.CENTER,
+            hexpand: true,
+        });
+        bmcBtn.add_css_class('bmc-button');
+
+        const bmcBox = new Gtk.Box({
+            orientation: Gtk.Orientation.HORIZONTAL,
+            spacing: 8,
+            halign: Gtk.Align.CENTER,
+        });
+        bmcBox.append(new Gtk.Label({label: '☕'}));
+        bmcBox.append(new Gtk.Label({label: 'Buy me a coffee'}));
+        bmcBtn.set_child(bmcBox);
+
+        const cssProvider = new Gtk.CssProvider();
+        cssProvider.load_from_string(`
+            .bmc-button {
+                background-color: #FF5F5F;
+                color: #ffffff;
+                font-weight: bold;
+                font-size: 16px;
+                padding: 12px 32px;
+                border-radius: 12px;
+                border: none;
+                min-height: 36px;
+            }
+            .bmc-button:hover {
+                background-color: #e04545;
+            }
+        `);
+        bmcBtn.get_style_context().add_provider(
+            cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+
+        bmcBtn.connect('clicked', () => {
+            Gtk.show_uri(window, bmcUrl, 0);
+        });
+        bmcBtnRow.set_child(bmcBtn);
+        donateGroup.add(bmcBtnRow);
+
+        // QR code
+        const qrGroup = new Adw.PreferencesGroup({
+            title: 'Scan to Donate',
+        });
+        page.add(qrGroup);
+
+        const qrPath = this.dir.get_child('assets')
+            .get_child('images').get_child('qr-code.png').get_path();
+        const qrImage = Gtk.Picture.new_for_filename(qrPath);
+        qrImage.set_content_fit(Gtk.ContentFit.CONTAIN);
+        qrImage.set_size_request(300, 300);
+        qrImage.set_margin_top(12);
+        qrImage.set_margin_bottom(12);
+
+        const qrRow = new Adw.ActionRow({activatable: false});
+        qrRow.set_child(qrImage);
+        qrGroup.add(qrRow);
     }
 }

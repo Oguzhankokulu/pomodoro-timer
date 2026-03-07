@@ -132,6 +132,27 @@
       <summary>Saved event-sounds state before focus mode (internal)</summary>
     </key>
 
+    <!-- Keybindings -->
+    <key name="keybinding-toggle" type="as">
+      <default>[]</default>
+      <summary>Start/Pause timer</summary>
+    </key>
+
+    <key name="keybinding-skip" type="as">
+      <default>[]</default>
+      <summary>Skip current interval</summary>
+    </key>
+
+    <key name="keybinding-reset" type="as">
+      <default>[]</default>
+      <summary>Reset current interval</summary>
+    </key>
+
+    <key name="keybinding-reset-all" type="as">
+      <default>[]</default>
+      <summary>Reset all sessions</summary>
+    </key>
+
     <!-- Session State (internal, for persistence across screen lock) -->
     <key name="session-state" type="s">
       <default>''</default>

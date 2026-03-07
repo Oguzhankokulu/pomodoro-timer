@@ -1,3 +1,5 @@
+.gitignore
+
 # Compiled schemas
 schemas/gschemas.compiled
 
@@ -20,3 +22,8 @@ package-lock.json
 
 # Build directory
 build/
+
+# Agents
+.agents/
+.claude/
+CLAUDE.md

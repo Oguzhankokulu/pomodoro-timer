@@ -727,6 +727,25 @@ export const PomodoroIndicator = GObject.registerClass(
           );
       }
 
+      // Public methods for keybinding actions
+      toggleTimer() {
+          this._onStartPauseClicked();
+      }
+
+      skipInterval() {
+          this._timer.skip();
+      }
+
+      resetTimer() {
+          this._timer.reset();
+      }
+
+      resetAll() {
+          this._sessionStarted = false;
+          this._settings.set_boolean('session-started', false);
+          this._timer.fullReset();
+      }
+
       _onStartPauseClicked() {
           switch (this._timer.state) {
           case TimerState.IDLE:
