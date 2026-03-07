@@ -34,3 +34,18 @@ export const WallpaperOption = Object.freeze({
     MINECRAFT: 'minecraft',
     CUSTOM: 'custom',
 });
+
+export const DurationLimits = Object.freeze({
+    STEP: 30,
+    MIN: 30,
+    MAX: 5400,
+});
+
+export const TaskDefaults = Object.freeze({
+    MIN_DIFFICULTY: 1,
+    MAX_DIFFICULTY: 10,
+    DEFAULT_DIFFICULTY: 5,
+    MIN_ESTIMATED_POMODOROS: 1,
+    MAX_ESTIMATED_POMODOROS: 50,
+    DEFAULT_ESTIMATED_POMODOROS: 4,
+});

@@ -56,6 +56,13 @@
       <summary>Tick sound volume level (0.0 to 1.0)</summary>
     </key>
     
+    <!-- Theme Settings -->
+    <key name="use-system-theme" type="b">
+      <default>false</default>
+      <summary>Use system theme colors</summary>
+      <description>Blend with GNOME theme instead of using hardcoded colors</description>
+    </key>
+
     <!-- Panel Display Settings -->
     <key name="show-icon" type="b">
       <default>true</default>
@@ -104,6 +111,27 @@
       <description>Disable system event sounds during work sessions</description>
     </key>
     
+    <!-- Focus Mode Crash Recovery (internal) -->
+    <key name="focus-saved-wallpaper-uri" type="s">
+      <default>''</default>
+      <summary>Saved wallpaper URI before focus mode (internal)</summary>
+    </key>
+
+    <key name="focus-saved-wallpaper-uri-dark" type="s">
+      <default>''</default>
+      <summary>Saved dark wallpaper URI before focus mode (internal)</summary>
+    </key>
+
+    <key name="focus-saved-show-banners" type="s">
+      <default>''</default>
+      <summary>Saved show-banners state before focus mode (internal)</summary>
+    </key>
+
+    <key name="focus-saved-event-sounds" type="s">
+      <default>''</default>
+      <summary>Saved event-sounds state before focus mode (internal)</summary>
+    </key>
+
     <!-- Session State (internal, for persistence across screen lock) -->
     <key name="session-state" type="s">
       <default>''</default>
@@ -128,6 +156,11 @@
     <key name="session-started" type="b">
       <default>false</default>
       <summary>Whether session has been started (internal)</summary>
+    </key>
+    <key name="current-task-id" type="s">
+      <default>''</default>
+      <summary>Current task ID</summary>
+      <description>ID of the currently selected task for session tracking</description>
     </key>
     
   </schema>

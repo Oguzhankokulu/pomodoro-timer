@@ -37,6 +37,9 @@ export class FocusModeManager {
         this._soundSettings = new Gio.Settings({
             schema: 'org.gnome.desktop.sound',
         });
+
+        // Crash recovery: restore desktop state if orphaned from a previous crash
+        this._recoverOrphanedState();
     }
 
     get enabled() {
@@ -69,6 +72,12 @@ export class FocusModeManager {
         this._savedWallpaperUriDark = this._bgSettings.get_string('picture-uri-dark');
         this._savedShowBanners = this._notifSettings.get_boolean('show-banners');
         this._savedEventSounds = this._soundSettings.get_boolean('event-sounds');
+
+        // Persist to GSettings for crash recovery
+        this._settings.set_string('focus-saved-wallpaper-uri', this._savedWallpaperUri);
+        this._settings.set_string('focus-saved-wallpaper-uri-dark', this._savedWallpaperUriDark);
+        this._settings.set_string('focus-saved-show-banners', String(this._savedShowBanners));
+        this._settings.set_string('focus-saved-event-sounds', String(this._savedEventSounds));
     }
 
     _applyFocusMode() {
@@ -102,6 +111,33 @@ export class FocusModeManager {
         this._savedWallpaperUriDark = null;
         this._savedShowBanners = null;
         this._savedEventSounds = null;
+
+        // Clear persisted recovery state
+        this._clearPersistedState();
+    }
+
+    _recoverOrphanedState() {
+        const uri = this._settings.get_string('focus-saved-wallpaper-uri');
+        if (!uri)
+            return;
+
+        this._savedWallpaperUri = uri;
+        this._savedWallpaperUriDark = this._settings.get_string('focus-saved-wallpaper-uri-dark');
+
+        const banners = this._settings.get_string('focus-saved-show-banners');
+        this._savedShowBanners = banners === 'true';
+
+        const sounds = this._settings.get_string('focus-saved-event-sounds');
+        this._savedEventSounds = sounds === 'true';
+
+        this._restoreDesktopState();
+    }
+
+    _clearPersistedState() {
+        this._settings.set_string('focus-saved-wallpaper-uri', '');
+        this._settings.set_string('focus-saved-wallpaper-uri-dark', '');
+        this._settings.set_string('focus-saved-show-banners', '');
+        this._settings.set_string('focus-saved-event-sounds', '');
     }
 
     _getWallpaperUri() {

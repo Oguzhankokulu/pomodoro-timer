@@ -52,6 +52,10 @@ cp "$EXTENSION_DIR/src/sound.js" "$BUILD_DIR/"
 cp "$EXTENSION_DIR/src/constants.js" "$BUILD_DIR/"
 cp "$EXTENSION_DIR/src/utils.js" "$BUILD_DIR/"
 cp "$EXTENSION_DIR/src/suspendInhibitor.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/focusMode.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/dataStore.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/statsTracker.js" "$BUILD_DIR/"
+cp "$EXTENSION_DIR/src/taskManager.js" "$BUILD_DIR/"
 
 # Copy prefs.js from root
 cp "$EXTENSION_DIR/prefs.js" "$BUILD_DIR/"
@@ -65,6 +69,7 @@ cp "$EXTENSION_DIR/schemas"/*.xml "$BUILD_DIR/schemas/"
 mkdir -p "$BUILD_DIR/assets"
 cp -r "$EXTENSION_DIR/assets/images" "$BUILD_DIR/assets/" 2>/dev/null || true
 cp -r "$EXTENSION_DIR/assets/sounds" "$BUILD_DIR/assets/" 2>/dev/null || true
+cp -r "$EXTENSION_DIR/assets/wallpapers" "$BUILD_DIR/assets/" 2>/dev/null || true
 
 # 5. Create ZIP from build directory
 echo "Creating $ZIP_FILE..."

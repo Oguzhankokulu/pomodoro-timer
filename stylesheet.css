@@ -137,3 +137,59 @@
 .pomodoro-paused {
     opacity: 0.7;
 }
+
+/* Task indicator */
+.pomodoro-task-indicator {
+    spacing: 8px;
+    padding: 2px 0;
+}
+
+.pomodoro-task-icon {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.pomodoro-task-title {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.pomodoro-task-progress {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 32px;
+}
+
+/* Prefs button */
+.pomodoro-prefs-btn-box {
+    spacing: 6px;
+}
+
+/* System theme variants */
+.pomodoro-status-box-themed {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 8px 24px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.pomodoro-control-btn-themed {
+    min-width: 80px;
+    min-height: 32px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: inherit;
+}
+
+.pomodoro-control-btn-themed:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.pomodoro-control-btn-themed:active {
+    background-color: rgba(255, 255, 255, 0.3);
+}

@@ -7,16 +7,16 @@ import GLib from 'gi://GLib';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-import {TimerState, IntervalType} from './constants.js';
+import {TimerState, IntervalType, DurationLimits} from './constants.js';
 import {formatTime, getIntervalDisplayName} from './utils.js';
 import {PomodoroTimer} from './timer.js';
 import {SoundManager} from './sound.js';
 import {SuspendInhibitor} from './suspendInhibitor.js';
 import {FocusModeManager} from './focusMode.js';
+import {DataStore} from './dataStore.js';
+import {StatsTracker} from './statsTracker.js';
+import {TaskManager} from './taskManager.js';
 
-const DURATION_STEP = 30;
-const MIN_DURATION = 30;
-const MAX_DURATION = 5400;
 
 // Duration adjustment menu item with +/- buttons and editable entry
 const DurationAdjustMenuItem = GObject.registerClass(
@@ -52,7 +52,7 @@ const DurationAdjustMenuItem = GObject.registerClass(
               child: new St.Label({text: '−'}),
           });
           this._minusBtn.connect('clicked', () =>
-              this._adjustDuration(-DURATION_STEP)
+              this._adjustDuration(-DurationLimits.STEP)
           );
 
           // Clickable label that becomes an entry on click
@@ -81,7 +81,7 @@ const DurationAdjustMenuItem = GObject.registerClass(
               child: new St.Label({text: '+'}),
           });
           this._plusBtn.connect('clicked', () =>
-              this._adjustDuration(DURATION_STEP)
+              this._adjustDuration(DurationLimits.STEP)
           );
 
           box.add_child(this._labelWidget);
@@ -122,8 +122,8 @@ const DurationAdjustMenuItem = GObject.registerClass(
 
           if (
               seconds !== null &&
-        seconds >= MIN_DURATION &&
-        seconds <= MAX_DURATION
+        seconds >= DurationLimits.MIN &&
+        seconds <= DurationLimits.MAX
           )
               this._settings.set_int(this._settingsKey, seconds);
 
@@ -162,8 +162,8 @@ const DurationAdjustMenuItem = GObject.registerClass(
       _adjustDuration(delta) {
           const current = this._settings.get_int(this._settingsKey);
           const newValue = Math.max(
-              MIN_DURATION,
-              Math.min(MAX_DURATION, current + delta)
+              DurationLimits.MIN,
+              Math.min(DurationLimits.MAX, current + delta)
           );
           this._settings.set_int(this._settingsKey, newValue);
       }
@@ -279,7 +279,13 @@ export const PomodoroIndicator = GObject.registerClass(
           this._soundManager = new SoundManager(extensionPath, settings);
           this._suspendInhibitor = new SuspendInhibitor(settings);
           this._focusModeManager = new FocusModeManager(settings, extensionPath);
+          this._dataStore = new DataStore(uuid);
+          this._dataStore.load();
+          this._statsTracker = new StatsTracker(this._dataStore);
+          this._taskManager = new TaskManager(this._dataStore, settings);
           this._sessionStarted = false;
+
+          this._useSystemTheme = this._settings.get_boolean('use-system-theme');
 
           this._buildPanelButton();
 
@@ -290,6 +296,14 @@ export const PomodoroIndicator = GObject.registerClass(
           this._buildMenu();
           this._connectTimerSignals();
           this._connectSettingsSignals();
+
+          // Reload data from disk when popup opens (syncs with prefs changes)
+          this._menuOpenId = this.menu.connect('open-state-changed', (_menu, isOpen) => {
+              if (isOpen) {
+                  this._dataStore.load();
+                  this._updateTaskSection();
+              }
+          });
 
           // Restore session started flag for screen lock persistence
           this._sessionStarted = this._settings.get_boolean('session-started');
@@ -362,7 +376,8 @@ export const PomodoroIndicator = GObject.registerClass(
           });
           this._statusLabel = new St.Label({
               text: 'Work',
-              style_class: 'pomodoro-status-box',
+              style_class: this._useSystemTheme
+                  ? 'pomodoro-status-box-themed' : 'pomodoro-status-box',
           });
           statusBox.add_child(this._statusLabel);
           statusBoxItem.add_child(statusBox);
@@ -399,7 +414,7 @@ export const PomodoroIndicator = GObject.registerClass(
 
           this._startPauseBtn = new St.Button({
               label: 'Start',
-              style_class: 'pomodoro-control-btn pomodoro-btn-primary',
+              style_class: this._themedBtnClass('pomodoro-btn-primary'),
               x_expand: true,
           });
           this._startPauseBtn.connect('clicked', () => {
@@ -408,7 +423,7 @@ export const PomodoroIndicator = GObject.registerClass(
 
           this._skipBtn = new St.Button({
               label: 'Skip',
-              style_class: 'pomodoro-control-btn pomodoro-btn-secondary',
+              style_class: this._themedBtnClass('pomodoro-btn-secondary'),
               x_expand: true,
           });
           this._skipBtn.connect('clicked', () => {
@@ -429,7 +444,7 @@ export const PomodoroIndicator = GObject.registerClass(
 
           this._resetBtn = new St.Button({
               label: 'Reset',
-              style_class: 'pomodoro-control-btn pomodoro-btn-warning',
+              style_class: this._themedBtnClass('pomodoro-btn-warning'),
               x_expand: true,
           });
           this._resetBtn.connect('clicked', () => {
@@ -438,7 +453,7 @@ export const PomodoroIndicator = GObject.registerClass(
 
           this._fullResetBtn = new St.Button({
               label: 'Reset All',
-              style_class: 'pomodoro-control-btn pomodoro-btn-danger',
+              style_class: this._themedBtnClass('pomodoro-btn-danger'),
               x_expand: true,
           });
           this._fullResetBtn.connect('clicked', () => {
@@ -490,12 +505,131 @@ export const PomodoroIndicator = GObject.registerClass(
 
           this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-          // Settings button
-          this._settingsItem = new PopupMenu.PopupMenuItem('Settings');
-          this._settingsItem.connect('activate', () => {
+          // Current task section
+          this._taskSection = new PopupMenu.PopupMenuSection();
+          this.menu.addMenuItem(this._taskSection);
+          this._buildTaskSection();
+
+          this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+          // Prefs button
+          const prefsItem = new PopupMenu.PopupBaseMenuItem({reactive: false});
+          this._prefsBtn = new St.Button({
+              label: 'Settings / Stats / Tasks',
+              style_class: this._themedBtnClass('pomodoro-btn-secondary'),
+              x_expand: true,
+          });
+          this._prefsBtn.connect('clicked', () => {
+              this.menu.close();
               this._extension.openPreferences();
           });
-          this.menu.addMenuItem(this._settingsItem);
+          prefsItem.add_child(this._prefsBtn);
+          this.menu.addMenuItem(prefsItem);
+      }
+
+      _buildTaskSection() {
+          this._taskSection.actor.destroy_all_children();
+          this._taskSection.removeAll();
+
+          const currentTask = this._taskManager.getCurrentTask();
+
+          if (currentTask) {
+              // Task info row
+              const taskInfoItem = new PopupMenu.PopupBaseMenuItem({reactive: false});
+              const taskInfoBox = new St.BoxLayout({
+                  x_expand: true,
+                  style_class: 'pomodoro-task-indicator',
+              });
+
+              taskInfoBox.add_child(new St.Icon({
+                  icon_name: 'emblem-documents-symbolic',
+                  icon_size: 14,
+                  style_class: 'pomodoro-task-icon',
+              }));
+
+              const titleLabel = new St.Label({
+                  text: currentTask.title,
+                  x_expand: true,
+                  y_align: Clutter.ActorAlign.CENTER,
+                  style_class: 'pomodoro-task-title',
+              });
+              titleLabel.clutter_text.set_ellipsize(3); // Pango.EllipsizeMode.END
+              taskInfoBox.add_child(titleLabel);
+
+              taskInfoBox.add_child(new St.Label({
+                  text: `${currentTask.pomodorosCompleted}/${currentTask.pomodorosEstimated}`,
+                  y_align: Clutter.ActorAlign.CENTER,
+                  style_class: 'pomodoro-task-progress',
+              }));
+
+              taskInfoItem.add_child(taskInfoBox);
+              this._taskSection.addMenuItem(taskInfoItem);
+
+              // Task action buttons
+              const taskActionsItem = new PopupMenu.PopupBaseMenuItem({reactive: false});
+              const taskActionsBox = new St.BoxLayout({
+                  style_class: 'pomodoro-button-row',
+                  x_expand: true,
+              });
+
+              const completeBtn = new St.Button({
+                  label: '✓ Complete',
+                  style_class: this._themedBtnClass('pomodoro-btn-primary'),
+                  x_expand: true,
+              });
+              completeBtn.connect('clicked', () => {
+                  this._taskManager.completeTask(currentTask.id);
+                  this._updateTaskSection();
+              });
+
+              taskActionsBox.add_child(completeBtn);
+              taskActionsItem.add_child(taskActionsBox);
+              this._taskSection.addMenuItem(taskActionsItem);
+          }
+
+          // Change/select task submenu
+          const activeTasks = this._taskManager.getActiveTasks();
+          if (activeTasks.length > 0) {
+              const changeLabel = currentTask ? '↻ Change Task' : 'Select Task';
+              const changeItem = new PopupMenu.PopupSubMenuMenuItem(changeLabel);
+              const currentId = currentTask ? currentTask.id : '';
+
+              for (const task of activeTasks) {
+                  const taskItem = new PopupMenu.PopupMenuItem(
+                      `${task.title}  (${task.pomodorosCompleted}/${task.pomodorosEstimated})`
+                  );
+                  if (task.id === currentId)
+                      taskItem.setOrnament(PopupMenu.Ornament.DOT);
+                  else
+                      taskItem.setOrnament(PopupMenu.Ornament.NONE);
+
+                  taskItem.connect('activate', () => {
+                      this._taskManager.setCurrentTask(task.id);
+                      this._updateTaskSection();
+                  });
+                  changeItem.menu.addMenuItem(taskItem);
+              }
+
+              if (currentTask) {
+                  changeItem.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+                  const clearItem = new PopupMenu.PopupMenuItem('No Task');
+                  clearItem.connect('activate', () => {
+                      this._taskManager.setCurrentTask('');
+                      this._updateTaskSection();
+                  });
+                  changeItem.menu.addMenuItem(clearItem);
+              }
+
+              this._taskSection.addMenuItem(changeItem);
+          } else if (!currentTask) {
+              const emptyItem = new PopupMenu.PopupMenuItem('No tasks', {reactive: false});
+              emptyItem.setSensitive(false);
+              this._taskSection.addMenuItem(emptyItem);
+          }
+      }
+
+      _updateTaskSection() {
+          this._buildTaskSection();
       }
 
       _connectTimerSignals() {
@@ -548,8 +682,17 @@ export const PomodoroIndicator = GObject.registerClass(
           );
 
           this._timerSignals.push(
-              this._timer.connect('interval-completed', () => {
+              this._timer.connect('interval-completed', (_timer, intervalType) => {
                   this._soundManager.playCompleteSound();
+                  if (intervalType === IntervalType.WORK) {
+                      const currentTask = this._taskManager.getCurrentTask();
+                      const taskId = currentTask ? currentTask.id : null;
+                      const dur = this._settings.get_int('work-duration');
+                      this._statsTracker.logSession(dur, taskId);
+                      if (taskId)
+                          this._taskManager.incrementPomodoro(taskId);
+                      this._updateTaskSection();
+                  }
               })
           );
 
@@ -569,6 +712,18 @@ export const PomodoroIndicator = GObject.registerClass(
           );
           this._settingsSignals.push(
               this._settings.connect('changed::show-timer-always', updateUI)
+          );
+          this._settingsSignals.push(
+              this._settings.connect('changed::current-task-id', () => {
+                  this._dataStore.load();
+                  this._updateTaskSection();
+              })
+          );
+          this._settingsSignals.push(
+              this._settings.connect('changed::use-system-theme', () => {
+                  this._useSystemTheme = this._settings.get_boolean('use-system-theme');
+                  this._applyTheme();
+              })
           );
       }
 
@@ -663,7 +818,34 @@ export const PomodoroIndicator = GObject.registerClass(
               this._icon.add_style_class_name('pomodoro-break');
       }
 
+      _themedBtnClass(modifier) {
+          if (this._useSystemTheme)
+              return `pomodoro-control-btn-themed ${modifier}`;
+          return `pomodoro-control-btn ${modifier}`;
+      }
+
+      _applyTheme() {
+          this._statusLabel.style_class = this._useSystemTheme
+              ? 'pomodoro-status-box-themed' : 'pomodoro-status-box';
+
+          const buttons = [
+              this._startPauseBtn, this._skipBtn,
+              this._resetBtn, this._fullResetBtn, this._prefsBtn,
+          ];
+          const btnBase = this._useSystemTheme
+              ? 'pomodoro-control-btn-themed' : 'pomodoro-control-btn';
+          for (const btn of buttons) {
+              btn.style_class = btn.style_class
+                  .replace(/pomodoro-control-btn(-themed)?/, btnBase);
+          }
+      }
+
       destroy() {
+          if (this._menuOpenId) {
+              this.menu.disconnect(this._menuOpenId);
+              this._menuOpenId = null;
+          }
+
           if (this._timerSignals) {
               this._timerSignals.forEach(id => this._timer.disconnect(id));
               this._timerSignals = null;
@@ -687,6 +869,21 @@ export const PomodoroIndicator = GObject.registerClass(
           if (this._focusModeManager) {
               this._focusModeManager.destroy();
               this._focusModeManager = null;
+          }
+
+          if (this._taskManager) {
+              this._taskManager.destroy();
+              this._taskManager = null;
+          }
+
+          if (this._statsTracker) {
+              this._statsTracker.destroy();
+              this._statsTracker = null;
+          }
+
+          if (this._dataStore) {
+              this._dataStore.destroy();
+              this._dataStore = null;
           }
 
           if (this._timer) {
