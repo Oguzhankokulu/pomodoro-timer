@@ -228,7 +228,7 @@ Pomodoro Timer is free and open-source. If it helps you stay productive, conside
 
 <div align="center">
   <a href="https://buymeacoffee.com/oguzhankokl">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" height="42">
   </a>
 </div>
 

@@ -202,27 +202,20 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         window.add(focusPage);
 
-        // Master Toggle Group
-        const focusToggleGroup = new Adw.PreferencesGroup({
-            title: 'Focus Mode',
-            description: 'Reduce distractions during work sessions',
-        });
-        focusPage.add(focusToggleGroup);
-
-        focusToggleGroup.add(
-            this._createSwitchRow(
-                settings,
-                'focus-mode-enabled',
-                'Enable Focus Mode',
-                'Activate focus mode when a work session starts'
-            )
-        );
-
         // Wallpaper Group
         const wallpaperGroup = new Adw.PreferencesGroup({
             title: 'Wallpaper',
             description: 'Change wallpaper during work sessions',
         });
+
+        wallpaperGroup.add(
+            this._createSwitchRow(
+                settings,
+                'focus-wallpaper-enabled',
+                'Change Wallpaper',
+                'Switch to a focus wallpaper during work sessions'
+            )
+        );
         focusPage.add(wallpaperGroup);
 
         const wallpaperModel = new Gtk.StringList();
@@ -301,8 +294,8 @@ export default class PomodoroPreferences extends ExtensionPreferences {
 
         // Distraction Control Group
         const distractionGroup = new Adw.PreferencesGroup({
-            title: 'Distractions',
-            description: 'Control notifications during work sessions',
+            title: 'Notifications',
+            description: 'Control system notifications during work sessions',
         });
         focusPage.add(distractionGroup);
 
@@ -320,6 +313,30 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                 'focus-mute-sounds',
                 'Mute Notification Sounds',
                 'Silence system event sounds'
+            )
+        );
+        distractionGroup.add(
+            this._createSwitchRow(
+                settings,
+                'notify-enabled',
+                'Pomodoro Notifications',
+                'Show system notifications for session events'
+            )
+        );
+
+        // Task Automation Group
+        const automationGroup = new Adw.PreferencesGroup({
+            title: 'Task Automation',
+            description: 'Automatically manage task completion',
+        });
+        focusPage.add(automationGroup);
+
+        automationGroup.add(
+            this._createSwitchRow(
+                settings,
+                'auto-complete-tasks',
+                'Auto-complete Tasks',
+                'Complete non-repeated tasks when estimated pomodoros are reached'
             )
         );
 
@@ -598,9 +615,15 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                 value: task.pomodorosEstimated,
             }),
         });
+        const repeatedRow = new Adw.SwitchRow({
+            title: 'Repeated Task',
+            subtitle: 'Task stays active with progress reset on completion',
+            active: !!task.repeated,
+        });
         const fieldsGroup = new Adw.PreferencesGroup();
         fieldsGroup.add(difficultyRow);
         fieldsGroup.add(estimateRow);
+        fieldsGroup.add(repeatedRow);
         box.append(fieldsGroup);
 
         dialog.set_extra_child(box);
@@ -613,6 +636,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                         title,
                         difficulty: difficultyRow.value,
                         pomodorosEstimated: estimateRow.value,
+                        repeated: repeatedRow.active,
                     });
                 }
             }
@@ -662,6 +686,12 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         addGroup.add(estimateRow);
 
+        const repeatedRow = new Adw.SwitchRow({
+            title: 'Repeated Task',
+            subtitle: 'Task stays active with progress reset on completion',
+        });
+        addGroup.add(repeatedRow);
+
         const addBtnRow = new Adw.ActionRow();
         const addBtn = new Gtk.Button({
             label: 'Add Task',
@@ -705,6 +735,13 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                     title: `${isCurrent ? '● ' : ''}${task.title}`,
                     subtitle: `Difficulty: ${task.difficulty} · Progress: ${task.pomodorosCompleted}/${task.pomodorosEstimated}${isCurrent ? ' · Current' : ''}`,
                 });
+
+                if (task.repeated) {
+                    row.add_prefix(new Gtk.Image({
+                        icon_name: 'media-playlist-repeat-symbolic',
+                        tooltip_text: 'Repeated Task',
+                    }));
+                }
 
                 const assignBtn = new Gtk.Button({
                     icon_name: isCurrent ? 'emblem-default-symbolic' : 'media-playback-start-symbolic',
@@ -828,10 +865,11 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             const title = titleEntry.text.trim();
             if (!title)
                 return;
-            this._taskManager.addTask(title, difficultyRow.value, estimateRow.value);
+            this._taskManager.addTask(title, difficultyRow.value, estimateRow.value, repeatedRow.active);
             titleEntry.text = '';
             difficultyRow.value = TaskDefaults.DEFAULT_DIFFICULTY;
             estimateRow.value = TaskDefaults.DEFAULT_ESTIMATED_POMODOROS;
+            repeatedRow.active = false;
             refreshTasks();
         });
 
@@ -888,7 +926,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         aboutGroup.add(releaseNotesRow);
 
         const issueRow = new Adw.ActionRow({
-            title: 'Report an Issue',
+            title: 'Report an Issue/Feature Request',
             activatable: true,
         });
         issueRow.add_suffix(new Gtk.Image({

@@ -42,16 +42,12 @@ export class FocusModeManager {
         this._recoverOrphanedState();
     }
 
-    get enabled() {
-        return this._settings.get_boolean('focus-mode-enabled');
-    }
-
     get isActive() {
         return this._isActive;
     }
 
     activate() {
-        if (!this.enabled || this._isActive)
+        if (this._isActive)
             return;
 
         this._saveDesktopState();
@@ -81,30 +77,32 @@ export class FocusModeManager {
     }
 
     _applyFocusMode() {
-        // Change wallpaper
-        const wallpaperUri = this._getWallpaperUri();
-        if (wallpaperUri) {
-            this._bgSettings.set_string('picture-uri', wallpaperUri);
-            this._bgSettings.set_string('picture-uri-dark', wallpaperUri);
+        // Change wallpaper if enabled
+        if (this._settings.get_boolean('focus-wallpaper-enabled')) {
+            const wallpaperUri = this._getWallpaperUri();
+            if (wallpaperUri) {
+                this._bgSettings.set_string('picture-uri', wallpaperUri);
+                this._bgSettings.set_string('picture-uri-dark', wallpaperUri);
+            }
         }
 
-        // Enable Do Not Disturb
+        // Enable Do Not Disturb if enabled
         if (this._settings.get_boolean('focus-dnd-enabled'))
             this._notifSettings.set_boolean('show-banners', false);
 
-        // Mute notification sounds
+        // Mute notification sounds if enabled
         if (this._settings.get_boolean('focus-mute-sounds'))
             this._soundSettings.set_boolean('event-sounds', false);
     }
 
     _restoreDesktopState() {
-        if (this._savedWallpaperUri !== null)
+        if (this._savedWallpaperUri !== null && this._settings.get_boolean('focus-wallpaper-enabled')) {
             this._bgSettings.set_string('picture-uri', this._savedWallpaperUri);
-        if (this._savedWallpaperUriDark !== null)
             this._bgSettings.set_string('picture-uri-dark', this._savedWallpaperUriDark);
-        if (this._savedShowBanners !== null)
+        }
+        if (this._savedShowBanners !== null && this._settings.get_boolean('focus-dnd-enabled'))
             this._notifSettings.set_boolean('show-banners', this._savedShowBanners);
-        if (this._savedEventSounds !== null)
+        if (this._savedEventSounds !== null && this._settings.get_boolean('focus-mute-sounds'))
             this._soundSettings.set_boolean('event-sounds', this._savedEventSounds);
 
         this._savedWallpaperUri = null;

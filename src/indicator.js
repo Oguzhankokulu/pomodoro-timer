@@ -4,6 +4,7 @@ import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
@@ -689,9 +690,32 @@ export const PomodoroIndicator = GObject.registerClass(
                       const taskId = currentTask ? currentTask.id : null;
                       const dur = this._settings.get_int('work-duration');
                       this._statsTracker.logSession(dur, taskId);
-                      if (taskId)
+                      if (taskId) {
                           this._taskManager.incrementPomodoro(taskId);
+                          if (this._settings.get_boolean('auto-complete-tasks')) {
+                              const task = this._taskManager.getCurrentTask();
+                              if (task && !task.repeated && task.pomodorosCompleted >= task.pomodorosEstimated) {
+                                  this._taskManager.completeTask(taskId);
+                                  if (this._settings.get_boolean('notify-enabled'))
+                                      Main.notify('Pomodoro Timer', `Task "${task.title}" completed!`);
+                              }
+                          }
+                      }
                       this._updateTaskSection();
+
+                      if (this._settings.get_boolean('notify-enabled')) {
+                          const total = this._settings.get_int('intervals-per-set');
+                          const done = this._timer.completedWorkIntervals + 1;
+                          if (done >= total)
+                              Main.notify('Pomodoro Timer', 'All sessions complete! Time for a well-deserved long break.');
+                          else
+                              Main.notify('Pomodoro Timer', 'Work session complete, good job! Time for a short break.');
+                      }
+                  } else if (this._settings.get_boolean('notify-enabled')) {
+                      if (intervalType === IntervalType.SHORT_BREAK)
+                          Main.notify('Pomodoro Timer', 'Break is over. Ready for the next session!');
+                      else if (intervalType === IntervalType.LONG_BREAK)
+                          Main.notify('Pomodoro Timer', 'Long break is over. A new set begins!');
                   }
               })
           );

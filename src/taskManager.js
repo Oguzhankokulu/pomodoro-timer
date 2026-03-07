@@ -6,7 +6,7 @@ export class TaskManager {
         this._settings = settings;
     }
 
-    addTask(title, difficulty, pomodorosEstimated) {
+    addTask(title, difficulty, pomodorosEstimated, repeated = false) {
         const task = {
             id: String(Date.now()),
             title,
@@ -18,6 +18,7 @@ export class TaskManager {
             completedAt: null,
             pomodorosCompleted: 0,
             pomodorosEstimated: pomodorosEstimated || TaskDefaults.DEFAULT_ESTIMATED_POMODOROS,
+            repeated: !!repeated,
         };
         this._dataStore.getData().tasks.push(task);
         this._dataStore.save();
@@ -27,10 +28,15 @@ export class TaskManager {
     completeTask(id) {
         const task = this._findTask(id);
         if (task) {
-            task.completedAt = new Date().toISOString();
-            this._dataStore.save();
-            if (this._settings.get_string('current-task-id') === id)
-                this._settings.set_string('current-task-id', '');
+            if (task.repeated) {
+                task.pomodorosCompleted = 0;
+                this._dataStore.save();
+            } else {
+                task.completedAt = new Date().toISOString();
+                this._dataStore.save();
+                if (this._settings.get_string('current-task-id') === id)
+                    this._settings.set_string('current-task-id', '');
+            }
         }
     }
 
@@ -58,6 +64,8 @@ export class TaskManager {
             }
             if (fields.pomodorosEstimated !== undefined)
                 task.pomodorosEstimated = fields.pomodorosEstimated;
+            if (fields.repeated !== undefined)
+                task.repeated = !!fields.repeated;
             this._dataStore.save();
         }
     }

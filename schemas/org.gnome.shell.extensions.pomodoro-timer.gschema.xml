@@ -81,10 +81,10 @@
     </key>
     
     <!-- Focus Mode Settings -->
-    <key name="focus-mode-enabled" type="b">
+    <key name="focus-wallpaper-enabled" type="b">
       <default>false</default>
-      <summary>Enable focus mode</summary>
-      <description>Activate focus mode during work sessions</description>
+      <summary>Change wallpaper during work</summary>
+      <description>Switch to a focus wallpaper during work sessions</description>
     </key>
     
     <key name="focus-wallpaper-option" type="s">
@@ -109,6 +109,18 @@
       <default>true</default>
       <summary>Mute notification sounds during focus</summary>
       <description>Disable system event sounds during work sessions</description>
+    </key>
+
+    <key name="notify-enabled" type="b">
+      <default>true</default>
+      <summary>Show pomodoro notifications</summary>
+      <description>Show system notifications for session events</description>
+    </key>
+
+    <key name="auto-complete-tasks" type="b">
+      <default>false</default>
+      <summary>Auto-complete tasks</summary>
+      <description>Automatically complete non-repeated tasks when estimated pomodoros are reached</description>
     </key>
     
     <!-- Focus Mode Crash Recovery (internal) -->
