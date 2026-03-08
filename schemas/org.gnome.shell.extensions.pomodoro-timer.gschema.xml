@@ -47,12 +47,12 @@
     </key>
     
     <key name="event-sound-volume" type="d">
-      <default>1.0</default>
+      <default>0.5</default>
       <summary>Event sound volume level (0.0 to 1.0)</summary>
     </key>
     
     <key name="tick-sound-volume" type="d">
-      <default>1.0</default>
+      <default>0.5</default>
       <summary>Tick sound volume level (0.0 to 1.0)</summary>
     </key>
     
@@ -88,7 +88,7 @@
     </key>
     
     <key name="focus-wallpaper-option" type="s">
-      <default>'anime'</default>
+      <default>'dark-academia'</default>
       <summary>Focus wallpaper option</summary>
       <description>Which wallpaper to use: anime, cloudscape, dark-academia, forest, minecraft, or custom</description>
     </key>
@@ -121,6 +121,25 @@
       <default>false</default>
       <summary>Auto-complete tasks</summary>
       <description>Automatically complete non-repeated tasks when estimated pomodoros are reached</description>
+    </key>
+
+    <!-- Away from Desk Detection -->
+    <key name="idle-detection-enabled" type="b">
+      <default>false</default>
+      <summary>Enable away from desk detection</summary>
+      <description>Detect when user is away and handle idle time</description>
+    </key>
+
+    <key name="idle-detection-mode" type="s">
+      <default>'auto-pause'</default>
+      <summary>Idle detection mode</summary>
+      <description>How to handle idle time: auto-pause or ask-on-return</description>
+    </key>
+
+    <key name="idle-threshold" type="i">
+      <default>120</default>
+      <summary>Idle threshold in seconds</summary>
+      <description>Seconds of inactivity before considering user away</description>
     </key>
     
     <!-- Focus Mode Crash Recovery (internal) -->

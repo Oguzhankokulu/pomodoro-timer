@@ -21,7 +21,7 @@
 
 Pomodoro Timer is a **full-featured productivity extension** for GNOME Shell built around the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique).
 
-It lives in your top panel and gives you timer controls, task management, focus mode with wallpaper switching and Do Not Disturb, session statistics with charts, configurable keyboard shortcuts, sound notifications, and a suspend inhibitor — all without leaving your desktop.
+It lives in your top panel and gives you timer controls, task management, focus mode with wallpaper switching and Do Not Disturb, session statistics with charts, configurable keyboard shortcuts, sound notifications, idle detection, and a suspend inhibitor — all without leaving your desktop.
 
 > Whether you're deep in a coding session or studying for exams, Pomodoro Timer keeps you on track with minimal friction.
 
@@ -81,6 +81,7 @@ It lives in your top panel and gives you timer controls, task management, focus 
 - **Adjustable Durations** — Work, Short Break, Long Break, and intervals per set
 - **Auto-start** — Optionally auto-start breaks after work and work after breaks
 - **Session Persistence** — Timer state survives screen lock/unlock cycles
+- **System Notifications** — Get notified when work sessions and breaks end
 - **Minimal Panel UI** — Timer hidden when idle, shown only when running
 
 ### Focus Mode
@@ -94,6 +95,8 @@ It lives in your top panel and gives you timer controls, task management, focus 
 ### Task Management
 
 - **Create Tasks** — Add tasks with title, difficulty (1–10), and estimated pomodoros
+- **Repeated Tasks** — Tasks that stay active and reset progress on completion
+- **Auto-complete** — Optionally complete tasks when estimated pomodoros are reached
 - **Track Progress** — See pomodoro progress per task in real time
 - **Assign to Sessions** — Link tasks to your current timer session
 - **Task History** — Completed tasks are archived with timestamps
@@ -129,6 +132,7 @@ It lives in your top panel and gives you timer controls, task management, focus 
 ### System Integration
 
 - **Suspend Inhibitor** — Keeps your system awake during pomodoros
+- **Away from Desk Detection** — Detects when you leave during a session. Auto-pause mode pauses the timer; ask-on-return mode lets you keep or discard elapsed time
 - **System Theme Support** — Blend with GNOME theme colors instead of the default red
 
 <br>

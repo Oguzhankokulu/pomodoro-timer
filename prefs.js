@@ -169,9 +169,93 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                 settings,
                 'suspend-inhibitor-enabled',
                 'Prevent Auto-suspend',
-                'Keep system awake during pomodoro'
+                'Keep system awake during pomodoro. Disables idle detection.'
             )
         );
+
+        // Away from Desk Group
+        const idleGroup = new Adw.PreferencesGroup({
+            title: 'Away from Desk',
+            description: 'Detect inactivity and handle idle time during work sessions',
+        });
+        behaviorPage.add(idleGroup);
+
+        idleGroup.add(
+            this._createSwitchRow(
+                settings,
+                'idle-detection-enabled',
+                'Enable Idle Detection',
+                'Detect inactivity while timer runs. Disables auto-suspend prevention.'
+            )
+        );
+
+        const idleModeModel = new Gtk.StringList();
+        idleModeModel.append('Auto-pause');
+        idleModeModel.append('Ask on Return');
+
+        const idleModeMap = ['auto-pause', 'ask-on-return'];
+        const idleModeRow = new Adw.ComboRow({
+            title: 'Idle Mode',
+            subtitle: 'Auto-pause pauses the timer; Ask on Return lets you discard or keep idle time',
+            model: idleModeModel,
+        });
+
+        const currentMode = settings.get_string('idle-detection-mode');
+        const modeIdx = idleModeMap.indexOf(currentMode);
+        if (modeIdx >= 0)
+            idleModeRow.selected = modeIdx;
+
+        idleModeRow.connect('notify::selected', () => {
+            const idx = idleModeRow.selected;
+            if (idx >= 0 && idx < idleModeMap.length)
+                settings.set_string('idle-detection-mode', idleModeMap[idx]);
+        });
+        idleGroup.add(idleModeRow);
+
+        const idleThresholdRow = new Adw.SpinRow({
+            title: 'Idle Threshold',
+            subtitle: 'Minutes of inactivity before triggering',
+            adjustment: new Gtk.Adjustment({
+                lower: 1,
+                upper: 30,
+                step_increment: 1,
+                value: settings.get_int('idle-threshold') / 60,
+            }),
+        });
+        idleThresholdRow.connect('notify::value', () => {
+            settings.set_int('idle-threshold', idleThresholdRow.value * 60);
+        });
+        const idleThresholdSettingsId = settings.connect('changed::idle-threshold', () => {
+            idleThresholdRow.value = settings.get_int('idle-threshold') / 60;
+        });
+        idleGroup.add(idleThresholdRow);
+
+        // Show mode and threshold only when idle detection is enabled
+        const syncIdleVisibility = () => {
+            const enabled = settings.get_boolean('idle-detection-enabled');
+            idleModeRow.sensitive = enabled;
+            idleThresholdRow.sensitive = enabled;
+        };
+        syncIdleVisibility();
+        const idleEnabledSettingsId = settings.connect('changed::idle-detection-enabled', syncIdleVisibility);
+
+        // Mutual exclusion: idle detection and suspend inhibitor conflict
+        const suspendIdleId = settings.connect('changed::suspend-inhibitor-enabled', () => {
+            if (settings.get_boolean('suspend-inhibitor-enabled'))
+                settings.set_boolean('idle-detection-enabled', false);
+        });
+        const idleSuspendId = settings.connect('changed::idle-detection-enabled', () => {
+            if (settings.get_boolean('idle-detection-enabled'))
+                settings.set_boolean('suspend-inhibitor-enabled', false);
+        });
+
+        window.connect('close-request', () => {
+            settings.disconnect(idleThresholdSettingsId);
+            settings.disconnect(idleEnabledSettingsId);
+            settings.disconnect(suspendIdleId);
+            settings.disconnect(idleSuspendId);
+            return false;
+        });
 
         // Keybindings Group
         const keybindingsGroup = new Adw.PreferencesGroup({
@@ -197,7 +281,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
 
         // Focus Mode Page
         const focusPage = new Adw.PreferencesPage({
-            title: 'Focus Mode',
+            title: 'Focus',
             icon_name: 'focus-mode-symbolic',
         });
         window.add(focusPage);
@@ -576,9 +660,11 @@ export default class PomodoroPreferences extends ExtensionPreferences {
     }
 
     _showEditDialog(window, task, onSave) {
-        const dialog = new Adw.AlertDialog({
+        const dialog = new Adw.MessageDialog({
             heading: 'Edit Task',
             close_response: 'cancel',
+            transient_for: window,
+            modal: true,
         });
         dialog.add_response('cancel', 'Cancel');
         dialog.add_response('save', 'Save');
@@ -642,7 +728,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             }
         });
 
-        dialog.present(window);
+        dialog.present();
     }
 
     _buildTasksPage(window) {
@@ -908,7 +994,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             valign: Gtk.Align.CENTER,
         }));
         repoRow.connect('activated', () => {
-            Gtk.show_uri(window, this.metadata.url, 0);
+            new Gtk.UriLauncher({uri: this.metadata.url}).launch(window, null, null);
         });
         aboutGroup.add(repoRow);
 
@@ -921,7 +1007,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             valign: Gtk.Align.CENTER,
         }));
         releaseNotesRow.connect('activated', () => {
-            Gtk.show_uri(window, 'https://github.com/Oguzhankokulu/pomodoro-timer/releases', 0);
+            new Gtk.UriLauncher({uri: 'https://github.com/Oguzhankokulu/pomodoro-timer/releases'}).launch(window, null, null);
         });
         aboutGroup.add(releaseNotesRow);
 
@@ -934,7 +1020,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             valign: Gtk.Align.CENTER,
         }));
         issueRow.connect('activated', () => {
-            Gtk.show_uri(window, 'https://github.com/Oguzhankokulu/pomodoro-timer/issues', 0);
+            new Gtk.UriLauncher({uri: 'https://github.com/Oguzhankokulu/pomodoro-timer/issues'}).launch(window, null, null);
         });
         aboutGroup.add(issueRow);
 
@@ -979,12 +1065,14 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                 background-color: #e04545;
             }
         `);
-        bmcBtn.get_style_context().add_provider(
-            cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            cssProvider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         );
 
         bmcBtn.connect('clicked', () => {
-            Gtk.show_uri(window, bmcUrl, 0);
+            new Gtk.UriLauncher({uri: bmcUrl}).launch(window, null, null);
         });
         bmcBtnRow.set_child(bmcBtn);
         donateGroup.add(bmcBtnRow);

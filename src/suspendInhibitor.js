@@ -1,7 +1,6 @@
 // Suspend Inhibitor for Pomodoro Timer
 // Uses DBus org.gnome.SessionManager to prevent auto-suspend
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 
 
 
@@ -53,30 +52,20 @@ export class SuspendInhibitor {
         if (!this.enabled || this._isInhibited)
             return;
 
-        try {
-            const params = [
-                GLib.Variant.new_string('pomodoro-timer'),
-                GLib.Variant.new_uint32(0),
-                GLib.Variant.new_string('Pomodoro Timer is running'),
-                GLib.Variant.new_uint32(INHIBIT_IDLE | INHIBIT_SUSPEND),
-            ];
-            const paramsVariant = GLib.Variant.new_tuple(params);
-
-            const cookieTuple = this._sessionManager.call_sync(
-                'Inhibit',
-                paramsVariant,
-                Gio.DBusCallFlags.NONE,
-                -1,
-                null
-            );
-
-            if (cookieTuple !== null) {
-                this._inhibitorCookie = cookieTuple.get_child_value(0).get_uint32();
+        this._sessionManager.InhibitRemote(
+            'pomodoro-timer',
+            0,
+            'Pomodoro Timer is running',
+            INHIBIT_IDLE | INHIBIT_SUSPEND,
+            (cookie, error) => {
+                if (error) {
+                    console.log(`Pomodoro: Failed to add inhibitor: ${error.message}`);
+                    return;
+                }
+                this._inhibitorCookie = cookie;
                 this._isInhibited = true;
             }
-        } catch (e) {
-            console.log(`Pomodoro: Failed to add inhibitor: ${e.message}`);
-        }
+        );
     }
 
     uninhibit() {

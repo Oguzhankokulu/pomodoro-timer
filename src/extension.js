@@ -43,10 +43,8 @@ export default class PomodoroExtension extends Extension {
         for (const name of KEYBINDING_NAMES)
             Main.wm.removeKeybinding(name);
 
-        if (this._indicator) {
-            this._indicator.destroy();
-            this._indicator = null;
-        }
+        this._indicator?.destroy();
+        this._indicator = null;
         this._settings = null;
     }
 }

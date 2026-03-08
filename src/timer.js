@@ -6,6 +6,7 @@ import {TimerState, IntervalType} from './constants.js';
 
 export const PomodoroTimer = GObject.registerClass(
     {
+        GTypeName: 'PomodoroTimerTimer',
         Signals: {
             tick: {param_types: [GObject.TYPE_INT]},
             'state-changed': {
@@ -98,6 +99,12 @@ export const PomodoroTimer = GObject.registerClass(
             this._stopTicking();
             this._remainingTime = this._getDuration(this._intervalType);
             this._setState(TimerState.IDLE);
+            this.emit('tick', this._remainingTime);
+        }
+
+        rewindTo(seconds) {
+            const duration = this._getDuration(this._intervalType);
+            this._remainingTime = Math.max(0, Math.min(duration, seconds));
             this.emit('tick', this._remainingTime);
         }
 

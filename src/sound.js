@@ -1,6 +1,7 @@
 // Sound Manager for Pomodoro Timer
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
+import Gst from 'gi://Gst?version=1.0';
 
 const SOUND_FILES = {
     START: 'start.ogg',
@@ -30,8 +31,7 @@ export class SoundManager {
         this._gstInitialized = true;
 
         try {
-            imports.gi.versions['Gst'] = '1.0';
-            this._Gst = imports.gi.Gst;
+            this._Gst = Gst;
             const [initialized] = this._Gst.init_check(null);
             if (!initialized)
                 throw new Error('GStreamer init_check returned false');
@@ -63,8 +63,8 @@ export class SoundManager {
     }
 
     _createPlayer(name) {
-        const Gst = this._Gst;
-        const player = Gst.ElementFactory.make('playbin', name);
+        const gst = this._Gst;
+        const player = gst.ElementFactory.make('playbin', name);
         if (!player)
             return null;
 
@@ -74,14 +74,14 @@ export class SoundManager {
         const signals = [];
         signals.push(
             bus.connect('message::eos', () => {
-                player.set_state(Gst.State.NULL);
+                player.set_state(gst.State.NULL);
             })
         );
         signals.push(
             bus.connect('message::error', (_bus, msg) => {
                 const [error] = msg.parse_error();
                 console.error(`Pomodoro: GStreamer error (${name}): ${error.message}`);
-                player.set_state(Gst.State.NULL);
+                player.set_state(gst.State.NULL);
             })
         );
 
