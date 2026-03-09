@@ -1,4 +1,5 @@
 .gitignore
+docs/
 
 # Compiled schemas
 schemas/gschemas.compiled

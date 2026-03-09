@@ -998,6 +998,19 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         aboutGroup.add(repoRow);
 
+        const egoRow = new Adw.ActionRow({
+            title: 'GNOME Extensions',
+            activatable: true,
+        });
+        egoRow.add_suffix(new Gtk.Image({
+            icon_name: 'adw-external-link-symbolic',
+            valign: Gtk.Align.CENTER,
+        }));
+        egoRow.connect('activated', () => {
+            new Gtk.UriLauncher({uri: 'https://extensions.gnome.org/extension/9157/pomodoro-timer/'}).launch(window, null, null);
+        });
+        aboutGroup.add(egoRow);
+
         const releaseNotesRow = new Adw.ActionRow({
             title: 'Release Notes',
             activatable: true,
@@ -1042,7 +1055,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
 
         const bmcBox = new Gtk.Box({
             orientation: Gtk.Orientation.HORIZONTAL,
-            spacing: 8,
+            spacing: 10,
             halign: Gtk.Align.CENTER,
         });
         bmcBox.append(new Gtk.Label({label: '☕'}));
@@ -1051,18 +1064,20 @@ export default class PomodoroPreferences extends ExtensionPreferences {
 
         const cssProvider = new Gtk.CssProvider();
         cssProvider.load_from_string(`
-            .bmc-button {
-                background-color: #FF5F5F;
+            button.bmc-button {
+                background: #FF5F5F;
                 color: #ffffff;
+                font-family: Inter, sans-serif;
                 font-weight: bold;
-                font-size: 16px;
-                padding: 12px 32px;
-                border-radius: 12px;
-                border: none;
-                min-height: 36px;
+                font-size: 18px;
+                padding: 16px 48px;
+                border-radius: 14px;
+                border-width: 0;
+                border-style: none;
+                min-height: 44px;
             }
-            .bmc-button:hover {
-                background-color: #e04545;
+            button.bmc-button:hover {
+                background: #e04545;
             }
         `);
         Gtk.StyleContext.add_provider_for_display(
