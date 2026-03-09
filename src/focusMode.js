@@ -99,13 +99,13 @@ export class FocusModeManager {
         if (!this._settings || !this._bgSettings)
             return;
 
-        if (this._savedWallpaperUri !== null && this._settings.get_boolean('focus-wallpaper-enabled')) {
+        if (this._savedWallpaperUri !== null) {
             this._bgSettings.set_string('picture-uri', this._savedWallpaperUri);
             this._bgSettings.set_string('picture-uri-dark', this._savedWallpaperUriDark);
         }
-        if (this._savedShowBanners !== null && this._settings.get_boolean('focus-dnd-enabled'))
+        if (this._savedShowBanners !== null)
             this._notifSettings.set_boolean('show-banners', this._savedShowBanners);
-        if (this._savedEventSounds !== null && this._settings.get_boolean('focus-mute-sounds'))
+        if (this._savedEventSounds !== null)
             this._soundSettings.set_boolean('event-sounds', this._savedEventSounds);
 
         this._savedWallpaperUri = null;
