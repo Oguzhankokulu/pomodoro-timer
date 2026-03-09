@@ -59,7 +59,7 @@ export class SuspendInhibitor {
             INHIBIT_IDLE | INHIBIT_SUSPEND,
             (cookie, error) => {
                 if (error) {
-                    console.log(`Pomodoro: Failed to add inhibitor: ${error.message}`);
+                    console.error(`Pomodoro: Failed to add inhibitor: ${error.message}`);
                     return;
                 }
                 this._inhibitorCookie = cookie;
@@ -77,7 +77,7 @@ export class SuspendInhibitor {
             this._inhibitorCookie = null;
             this._isInhibited = false;
         } catch (e) {
-            console.log(`Pomodoro: Failed to remove inhibitor: ${e.message}`);
+            console.error(`Pomodoro: Failed to remove inhibitor: ${e.message}`);
         }
     }
 

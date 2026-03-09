@@ -780,7 +780,7 @@ export const PomodoroIndicator = GObject.registerClass(
 
             this._timerSignals.push(
                 this._timer.connect('set-completed', () => {
-                    console.log('Pomodoro: Full set completed!');
+
                 })
             );
         }

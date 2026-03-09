@@ -54,7 +54,7 @@ export class SoundManager {
                 this._Gst = null;
             }
         } catch (e) {
-            console.log(`Pomodoro: GStreamer unavailable: ${e.message}`);
+            console.warn(`Pomodoro: GStreamer unavailable: ${e.message}`);
             this._Gst = null;
         }
 
@@ -131,7 +131,7 @@ export class SoundManager {
         const file = Gio.File.new_for_path(soundPath);
 
         if (!file.query_exists(null)) {
-            console.log(`Pomodoro: Sound file not found: ${soundPath}`);
+            console.warn(`Pomodoro: Sound file not found: ${soundPath}`);
             return;
         }
 
