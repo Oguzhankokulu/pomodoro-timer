@@ -96,6 +96,9 @@ export class FocusModeManager {
     }
 
     _restoreDesktopState() {
+        if (!this._settings || !this._bgSettings)
+            return;
+
         if (this._savedWallpaperUri !== null && this._settings.get_boolean('focus-wallpaper-enabled')) {
             this._bgSettings.set_string('picture-uri', this._savedWallpaperUri);
             this._bgSettings.set_string('picture-uri-dark', this._savedWallpaperUriDark);

@@ -883,9 +883,10 @@ export const PomodoroIndicator = GObject.registerClass(
 
             // Timer is already paused from _onUserIdle
             this._awayDialog = new AwayDialog(idleDuration);
+            const dialog = this._awayDialog;
 
-            this._awayDialog.connect('closed', () => {
-                const choice = this._awayDialog.choice;
+            dialog.connect('closed', () => {
+                const choice = dialog.choice;
                 this._awayDialog = null;
 
                 if (choice === 'keep' && this._idleRemainingTime !== null) {
