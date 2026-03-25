@@ -151,6 +151,19 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         soundGroup.add(tickVolumeRow);
 
+        soundGroup.add(this._createSoundPickerRow(
+            settings, 'custom-start-sound', 'Custom Start Sound',
+            'Replace the default start sound', window
+        ));
+        soundGroup.add(this._createSoundPickerRow(
+            settings, 'custom-complete-sound', 'Custom Complete Sound',
+            'Replace the default complete sound', window
+        ));
+        soundGroup.add(this._createSoundPickerRow(
+            settings, 'custom-tick-sound', 'Custom Tick Sound',
+            'Replace the default tick sound', window
+        ));
+
         window.connect('close-request', () => {
             settings.disconnect(eventVolSettingsId);
             settings.disconnect(tickVolSettingsId);
@@ -450,6 +463,63 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             subtitle,
         });
         settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+        return row;
+    }
+
+    _createSoundPickerRow(settings, key, title, subtitle, window) {
+        const currentPath = settings.get_string(key);
+        const row = new Adw.ActionRow({
+            title,
+            subtitle: currentPath ? currentPath.split('/').pop() : 'Default',
+        });
+
+        const browseBtn = new Gtk.Button({
+            label: 'Browse',
+            valign: Gtk.Align.CENTER,
+        });
+        browseBtn.connect('clicked', () => {
+            const dialog = new Gtk.FileDialog({
+                title: `Select ${title}`,
+            });
+
+            const audioFilter = new Gtk.FileFilter();
+            audioFilter.set_name('Audio Files');
+            audioFilter.add_mime_type('audio/ogg');
+            audioFilter.add_mime_type('audio/mpeg');
+            audioFilter.add_mime_type('audio/wav');
+            audioFilter.add_mime_type('audio/x-wav');
+            audioFilter.add_mime_type('audio/flac');
+            const filterModel = new Gio.ListStore({item_type: Gtk.FileFilter});
+            filterModel.append(audioFilter);
+            dialog.filters = filterModel;
+
+            dialog.open(window, null, (_dialog, result) => {
+                try {
+                    const file = dialog.open_finish(result);
+                    if (file) {
+                        const path = file.get_path();
+                        settings.set_string(key, path);
+                        row.subtitle = path.split('/').pop();
+                    }
+                } catch {
+                    // User cancelled the dialog
+                }
+            });
+        });
+        row.add_suffix(browseBtn);
+
+        const resetBtn = new Gtk.Button({
+            icon_name: 'edit-clear-symbolic',
+            valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
+            tooltip_text: 'Reset to default',
+        });
+        resetBtn.connect('clicked', () => {
+            settings.set_string(key, '');
+            row.subtitle = 'Default';
+        });
+        row.add_suffix(resetBtn);
+
         return row;
     }
 

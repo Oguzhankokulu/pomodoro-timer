@@ -4,9 +4,9 @@ import Gio from 'gi://Gio';
 import Gst from 'gi://Gst?version=1.0';
 
 const SOUND_FILES = {
-    START: 'start.ogg',
-    TICK: 'tick.ogg',
-    COMPLETE: 'complete.ogg',
+    START: {file: 'start.ogg', customKey: 'custom-start-sound'},
+    TICK: {file: 'tick.ogg', customKey: 'custom-tick-sound'},
+    COMPLETE: {file: 'complete.ogg', customKey: 'custom-complete-sound'},
 };
 
 export class SoundManager {
@@ -121,18 +121,31 @@ export class SoundManager {
         return this._settings.get_boolean('tick-sound-enabled');
     }
 
-    _playSound(soundFile, playerField) {
+    _playSound(sound, playerField) {
         if (!this.soundEnabled)
             return;
 
         this._ensureGStreamer();
 
-        const soundPath = GLib.build_filenamev([this._soundsDir, soundFile]);
-        const file = Gio.File.new_for_path(soundPath);
+        // Try custom sound first; fall back to bundled default
+        const customPath = this._settings.get_string(sound.customKey);
 
-        if (!file.query_exists(null)) {
-            console.warn(`Pomodoro: Sound file not found: ${soundPath}`);
-            return;
+        let file;
+        if (customPath) {
+            file = Gio.File.new_for_path(customPath);
+            if (!file.query_exists(null)) {
+                console.warn(`Pomodoro: Custom sound not found: ${customPath}, using default`);
+                file = null;
+            }
+        }
+
+        if (!file) {
+            const soundPath = GLib.build_filenamev([this._soundsDir, sound.file]);
+            file = Gio.File.new_for_path(soundPath);
+            if (!file.query_exists(null)) {
+                console.warn(`Pomodoro: Sound file not found: ${soundPath}`);
+                return;
+            }
         }
 
         try {
@@ -144,7 +157,7 @@ export class SoundManager {
                 player.set_property('volume', this._settings.get_double(volumeKey));
                 player.set_state(this._Gst.State.PLAYING);
             } else if (this._soundPlayer) {
-                this._soundPlayer.play_from_file(file, soundFile, null);
+                this._soundPlayer.play_from_file(file, sound.file, null);
             }
         } catch (e) {
             console.error(`Pomodoro: Failed to play sound: ${e.message}`);
