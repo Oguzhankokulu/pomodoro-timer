@@ -26,6 +26,7 @@ export const PomodoroTimer = GObject.registerClass(
             this._remainingTime = this._getDuration(IntervalType.WORK);
             this._completedWorkIntervals = 0;
             this._timeoutId = null;
+            this._autoStartTimeoutId = null;
 
             // Restore saved state from GSettings (for screen lock persistence)
             this._restoreState();
@@ -178,24 +179,36 @@ export const PomodoroTimer = GObject.registerClass(
                 GLib.source_remove(this._timeoutId);
                 this._timeoutId = null;
             }
+            if (this._autoStartTimeoutId) {
+                GLib.source_remove(this._autoStartTimeoutId);
+                this._autoStartTimeoutId = null;
+            }
         }
 
         _onIntervalComplete() {
             this._timeoutId = null;
             const completedType = this._intervalType;
 
+            this._setState(TimerState.IDLE);
             this.emit('interval-completed', completedType);
             this._advanceToNextInterval();
 
             const autoStartBreaks = this._settings.get_boolean('auto-start-breaks');
             const autoStartWork = this._settings.get_boolean('auto-start-work');
+            const shouldAutoStart =
+                (completedType === IntervalType.WORK && autoStartBreaks) ||
+                (completedType !== IntervalType.WORK && autoStartWork);
 
-            if (completedType === IntervalType.WORK && autoStartBreaks)
-                this.start();
-            else if (completedType !== IntervalType.WORK && autoStartWork)
-                this.start();
-            else
-                this._setState(TimerState.IDLE);
+            if (shouldAutoStart) {
+                this._autoStartTimeoutId = GLib.timeout_add(
+                    GLib.PRIORITY_DEFAULT, 3000, () => {
+                        this._autoStartTimeoutId = null;
+                        if (this._state === TimerState.IDLE)
+                            this.start();
+                        return GLib.SOURCE_REMOVE;
+                    }
+                );
+            }
         }
 
         // State persistence methods for screen lock survival
