@@ -204,15 +204,6 @@ glib-compile-schemas schemas/
 
 Replace the panel icon by swapping `assets/images/fruit.png` or `assets/images/coffee.png` with your own **16×16 pixel** PNG image. Keep the same filename.
 
-### Custom Sounds
-
-Replace sound files in `assets/sounds/`:
-
-| File | Purpose |
-|------|---------|
-| `start.ogg` | Plays when the timer starts |
-| `tick.ogg` | Plays every second (if enabled) |
-| `complete.ogg` | Plays when an interval completes |
 
 ### Settings
 
