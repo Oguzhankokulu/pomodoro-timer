@@ -229,6 +229,16 @@
       <summary>Current task ID</summary>
       <description>ID of the currently selected task for session tracking</description>
     </key>
+
+    <key name="custom-pomodoro-icon" type="s">
+      <default>''</default>
+      <summary>Custom pomodoro icon file path</summary>
+    </key>
+
+    <key name="custom-break-icon" type="s">
+      <default>''</default>
+      <summary>Custom break icon file path</summary>
+    </key>
     
   </schema>
 </schemalist>

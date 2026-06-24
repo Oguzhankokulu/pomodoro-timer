@@ -7,6 +7,8 @@ import {TaskDefaults} from './constants.js';
 import {DataStore} from './dataStore.js';
 import {StatsTracker} from './statsTracker.js';
 import {TaskManager} from './taskManager.js';
+import GdkPixbuf from 'gi://GdkPixbuf';
+import GLib from 'gi://GLib';
 
 export default class PomodoroPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -33,6 +35,17 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                 'Show timer even when not running'
             )
         );
+
+        panelGroup.add(this._createImagePickerRow(
+            settings, 'custom-pomodoro-icon', 'Custom base icon',
+            'Replace base icon', window
+        ));
+
+        panelGroup.add(this._createImagePickerRow(
+            settings, 'custom-break-icon', 'Custom base icon',
+            'Replace base icon', window
+        ));
+        
 
         // Theme Group
         const themeGroup = new Adw.PreferencesGroup({
@@ -463,6 +476,87 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             subtitle,
         });
         settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+        return row;
+    }
+    _createImagePickerRow(settings, key, title, subtitle, window) {
+        const currentPath = settings.get_string(key);
+        const extensionPath = this.path;
+
+        const row = new Adw.ActionRow({
+            title,
+            subtitle: currentPath ? currentPath.split('/').pop() : 'Default',
+        });
+
+        const browseBtn = new Gtk.Button({
+            label: 'Browse',
+            valign: Gtk.Align.CENTER,
+        });
+        browseBtn.connect('clicked', () => {
+            const dialog = new Gtk.FileDialog({
+                title: `Select ${title}`,
+            });
+
+            const imageFilter = new Gtk.FileFilter();
+            imageFilter.set_name('PNG Images (16x16)');
+            imageFilter.add_mime_type('image/png');
+            imageFilter.add_pattern('*.png');
+
+        
+            const filterModel = new Gio.ListStore({item_type: Gtk.FileFilter});
+            filterModel.append(imageFilter);
+            dialog.filters = filterModel;
+
+            dialog.open(window, null, (_dialog, result) => {
+                try {
+                    const file = dialog.open_finish(result);
+                    if (file) {
+                        const path = file.get_path();
+
+                        const image = GdkPixbuf.Pixbuf.new_from_file(path);
+                        if (image.width !== 16 || image.height !== 16) {
+                            console.log('Image must be 16x16!');
+                            return;
+                        }
+
+                        const source = file;
+                        const destPath = GLib.build_filenamev([
+                            extensionPath,
+                            'assets',
+                            'images',
+                            source.get_basename(),
+                        ]);
+                        
+                        const dest = Gio.File.new_for_path(destPath);
+
+                        source.copy(    
+                            dest,
+                            Gio.FileCopyFlags.OVERWRITE,
+                            null,
+                            null
+                        );
+
+                        settings.set_string(key, source.get_basename());
+                        row.subtitle = path.split('/').pop();
+                    }
+                } catch {                    
+                    // User cancelled the dialog
+                }
+            });
+        });
+        row.add_suffix(browseBtn);
+
+        const resetBtn = new Gtk.Button({
+            icon_name: 'edit-clear-symbolic',
+            valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
+            tooltip_text: 'Reset to default',
+        });
+        resetBtn.connect('clicked', () => {
+            settings.set_string(key, '');
+            row.subtitle = 'Default';
+        });
+        row.add_suffix(resetBtn);
+
         return row;
     }
 
