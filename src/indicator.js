@@ -395,11 +395,12 @@ export const PomodoroIndicator = GObject.registerClass(
                 style_class: 'panel-status-menu-box pomodoro-panel-box',
             });
 
+            const icon_path = this._settings.get_string('custom-pomodoro-icon') || 'fruit.png';
             const iconPath = GLib.build_filenamev([
                 this._extensionPath,
                 'assets',
                 'images',
-                'fruit.png',
+                icon_path,
             ]);
             const iconFile = Gio.File.new_for_path(iconPath);
             this._icon = new St.Icon({
@@ -792,6 +793,17 @@ export const PomodoroIndicator = GObject.registerClass(
             this._settingsSignals.push(
                 this._settings.connect('changed::show-icon', updateUI)
             );
+
+            this._settingsSignals.push(
+                this._settings.connect('changed::custom-pomodoro-icon', () => { this._updateIconStyle();
+            })
+            ); 
+
+            this._settingsSignals.push(
+                this._settings.connect('changed::custom-break-icon', () => { this._updateIconStyle();
+            })
+            ); 
+
             this._settingsSignals.push(
                 this._settings.connect('changed::show-timer-always', updateUI)
             );
@@ -992,8 +1004,10 @@ export const PomodoroIndicator = GObject.registerClass(
             this._icon.remove_style_class_name('pomodoro-paused');
 
             // Swap icon based on interval type
+            const pomodoro_icon = this._settings.get_string('custom-pomodoro-icon') || 'fruit.png';
+            const break_icon = this._settings.get_string('custom-break-icon') || 'coffee.png';
             const iconName =
-        intervalType === IntervalType.WORK ? 'fruit.png' : 'coffee.png';
+        intervalType === IntervalType.WORK ? pomodoro_icon : break_icon;
             const iconPath = GLib.build_filenamev([
                 this._extensionPath,
                 'assets',
