@@ -216,7 +216,7 @@ export default class PomodoroPreferences extends ExtensionPreferences {
                 settings,
                 'idle-detection-enabled',
                 'Enable Idle Detection',
-                'Detect inactivity while timer runs. Disables auto-suspend prevention.'
+                'Detect inactivity during work sessions. Disables auto-suspend prevention.'
             )
         );
 
