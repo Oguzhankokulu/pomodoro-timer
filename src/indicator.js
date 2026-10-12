@@ -352,6 +352,7 @@ export const PomodoroIndicator = GObject.registerClass(
             // Reload data from disk when popup opens (syncs with prefs changes)
             this._menuOpenId = this.menu.connect('open-state-changed', (_menu, isOpen) => {
                 if (isOpen) {
+                    this._updateMenuMode();
                     this._dataStore.load();
                     this._updateTaskSection();
                 }
@@ -520,7 +521,18 @@ export const PomodoroIndicator = GObject.registerClass(
             row2Item.add_child(row2Box);
             this._controlsSection.addMenuItem(row2Item);
 
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            this._resetControls = row2Item;
+            this._compactMoreItem = new PopupMenu.PopupSubMenuMenuItem('More');
+            const compactResetItem = new PopupMenu.PopupMenuItem('Reset');
+            compactResetItem.connect('activate', () => this._timer.reset());
+            this._compactMoreItem.menu.addMenuItem(compactResetItem);
+            const compactResetAllItem = new PopupMenu.PopupMenuItem('Reset All');
+            compactResetAllItem.connect('activate', () => this.resetAll());
+            this._compactMoreItem.menu.addMenuItem(compactResetAllItem);
+            this._controlsSection.addMenuItem(this._compactMoreItem);
+
+            this._durationsSeparator = new PopupMenu.PopupSeparatorMenuItem();
+            this.menu.addMenuItem(this._durationsSeparator);
 
             // Duration adjustments
             this._durationsSection = new PopupMenu.PopupMenuSection();
@@ -556,14 +568,16 @@ export const PomodoroIndicator = GObject.registerClass(
             this._intervalsPerSetItem = new IntervalCountMenuItem(this._settings);
             this._durationsSection.addMenuItem(this._intervalsPerSetItem);
 
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            this._taskSeparator = new PopupMenu.PopupSeparatorMenuItem();
+            this.menu.addMenuItem(this._taskSeparator);
 
             // Current task section
             this._taskSection = new PopupMenu.PopupMenuSection();
             this.menu.addMenuItem(this._taskSection);
             this._buildTaskSection();
 
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            this._prefsSeparator = new PopupMenu.PopupSeparatorMenuItem();
+            this.menu.addMenuItem(this._prefsSeparator);
 
             // Prefs button
             const prefsItem = new PopupMenu.PopupBaseMenuItem({reactive: false});
@@ -578,6 +592,35 @@ export const PomodoroIndicator = GObject.registerClass(
             });
             prefsItem.add_child(this._prefsBtn);
             this.menu.addMenuItem(prefsItem);
+            this._prefsItem = prefsItem;
+
+            this._compactSettingsItem = new PopupMenu.PopupMenuItem('Settings');
+            this._compactSettingsItem.connect('activate', () => {
+                this._extension.openPreferences();
+            });
+            this.menu.addMenuItem(this._compactSettingsItem);
+            this._updateMenuMode();
+        }
+
+        _updateMenuMode() {
+            const compact = this._settings.get_boolean('compact-menu');
+            const setVisible = (item, visible) => {
+                (item.actor ?? item).visible = visible;
+            };
+
+            if (!compact)
+                this._compactMoreItem.menu.close();
+
+            setVisible(this._resetControls, !compact);
+            setVisible(this._compactMoreItem, compact);
+            setVisible(this._durationsSeparator, !compact);
+            setVisible(this._durationsSection, !compact);
+            setVisible(this._taskSeparator, !compact);
+            setVisible(this._taskSection, !compact);
+            setVisible(this._prefsSeparator, !compact);
+            setVisible(this._prefsItem, !compact);
+            setVisible(this._compactSettingsItem, compact);
+            this._updateIntervalLabel();
         }
 
         _buildTaskSection() {
@@ -796,6 +839,9 @@ export const PomodoroIndicator = GObject.registerClass(
                 this._settings.connect('changed::show-timer-always', updateUI)
             );
             this._settingsSignals.push(
+                this._settings.connect('changed::compact-menu', () => this._updateMenuMode())
+            );
+            this._settingsSignals.push(
                 this._settings.connect('changed::current-task-id', () => {
                     this._dataStore.load();
                     this._updateTaskSection();
@@ -939,8 +985,6 @@ export const PomodoroIndicator = GObject.registerClass(
         _updateUI() {
             const state = this._timer.state;
             const intervalType = this._timer.intervalType;
-            const completed = this._timer.completedWorkIntervals;
-            const total = this._timer.intervalsPerSet;
 
             this._timerLabel.text = formatTime(this._timer.remainingTime);
             this._statusLabel.text = getIntervalDisplayName(intervalType);
@@ -952,10 +996,7 @@ export const PomodoroIndicator = GObject.registerClass(
             this._icon.visible = showIcon;
             this._timerLabel.visible = showTimerAlways || this._sessionStarted;
 
-            if (intervalType === IntervalType.WORK)
-                this._intervalCountLabel.text = `Pomodoro ${completed + 1}/${total} | ${formatTime(this._timer.remainingTime)}`;
-            else
-                this._intervalCountLabel.text = `Pomodoro ${completed}/${total} | ${formatTime(this._timer.remainingTime)}`;
+            this._updateIntervalLabel();
 
             switch (state) {
             case TimerState.IDLE:
@@ -976,6 +1017,11 @@ export const PomodoroIndicator = GObject.registerClass(
             const intervalType = this._timer.intervalType;
             const completed = this._timer.completedWorkIntervals;
             const total = this._timer.intervalsPerSet;
+
+            if (this._settings.get_boolean('compact-menu')) {
+                this._intervalCountLabel.text = formatTime(this._timer.remainingTime);
+                return;
+            }
 
             if (intervalType === IntervalType.WORK)
                 this._intervalCountLabel.text = `Pomodoro ${completed + 1}/${total} | ${formatTime(this._timer.remainingTime)}`;
