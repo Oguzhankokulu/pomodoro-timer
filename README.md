@@ -8,7 +8,7 @@
 
   <br>
 
-  <img src="https://img.shields.io/badge/GNOME_Shell-45 | 46 | 47 | 48 | 49 | 50-blue?style=flat-square&logo=gnome&logoColor=white">
+  <img src="https://img.shields.io/badge/GNOME_Shell-45 | 46 | 47 | 48 | 49 | 50 | 51-blue?style=flat-square&logo=gnome&logoColor=white">
   <img src="https://img.shields.io/badge/License-GPL--3.0-green?style=flat-square">
 
 </div>
