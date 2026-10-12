@@ -874,13 +874,15 @@ export const PomodoroIndicator = GObject.registerClass(
 
         _shouldMonitorIdle() {
             return this._settings.get_boolean('idle-detection-enabled') &&
-              this._timer.state === TimerState.RUNNING;
+              this._timer.state === TimerState.RUNNING &&
+              this._timer.intervalType === IntervalType.WORK;
         }
 
         _syncIdleMonitoring() {
-            // Don't interrupt while waiting for user to return in ask-on-return mode
+            // Keep a pending return only while monitoring still applies to work
             if (this._awaitingReturn) {
-                if (!this._settings.get_boolean('idle-detection-enabled')) {
+                if (!this._settings.get_boolean('idle-detection-enabled') ||
+                    this._timer.intervalType !== IntervalType.WORK) {
                     this._awaitingReturn = false;
                     this._idleRemainingTime = null;
                     this._idleMonitor.stop();
