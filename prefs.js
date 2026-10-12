@@ -3,7 +3,7 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import Gio from 'gi://Gio';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
-import {TaskDefaults} from './constants.js';
+import {TaskDefaults, DurationLimits} from './constants.js';
 import {DataStore} from './dataStore.js';
 import {StatsTracker} from './statsTracker.js';
 import {TaskManager} from './taskManager.js';
@@ -34,6 +34,11 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             )
         );
 
+        panelGroup.add(this._createSwitchRow(
+            settings, 'compact-menu', 'Compact Menu',
+            'Show the timer and primary controls in the panel menu'
+        ));
+
         // Theme Group
         const themeGroup = new Adw.PreferencesGroup({
             title: 'Theme',
@@ -56,6 +61,19 @@ export default class PomodoroPreferences extends ExtensionPreferences {
             icon_name: 'preferences-other-symbolic',
         });
         window.add(behaviorPage);
+
+        const durationsGroup = new Adw.PreferencesGroup({
+            title: 'Session Lengths',
+            description: 'Adjust timer lengths and intervals',
+        });
+        behaviorPage.add(durationsGroup);
+        for (const [key, title] of [
+            ['work-duration', 'Work duration'],
+            ['short-break-duration', 'Short break duration'],
+            ['long-break-duration', 'Long break duration'],
+        ])
+            durationsGroup.add(this._createDurationRow(settings, key, title, window));
+        durationsGroup.add(this._createIntervalCountRow(settings, window));
 
         // Timer Group
         const timerGroup = new Adw.PreferencesGroup({
@@ -464,6 +482,108 @@ export default class PomodoroPreferences extends ExtensionPreferences {
         });
         settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
         return row;
+    }
+
+    _createDurationRow(settings, key, title, window) {
+        const row = new Adw.ActionRow({
+            title,
+            subtitle: 'Minutes : seconds',
+        });
+        const minutes = new Gtk.SpinButton({
+            adjustment: new Gtk.Adjustment({
+                lower: 0,
+                upper: 90,
+                step_increment: 1,
+            }),
+            numeric: true,
+            width_chars: 2,
+            valign: Gtk.Align.CENTER,
+            tooltip_text: `${title} minutes`,
+        });
+        const seconds = new Gtk.SpinButton({
+            adjustment: new Gtk.Adjustment({
+                lower: 0,
+                upper: 59,
+                step_increment: 1,
+            }),
+            numeric: true,
+            width_chars: 2,
+            valign: Gtk.Align.CENTER,
+            tooltip_text: `${title} seconds`,
+        });
+        let syncing = false;
+        let updatingSettings = false;
+        const syncFromSettings = () => {
+            syncing = true;
+            const value = settings.get_int(key);
+            minutes.value = Math.floor(value / 60);
+            seconds.value = value % 60;
+            syncing = false;
+        };
+        syncFromSettings();
+        const updateSettings = () => {
+            if (syncing)
+                return;
+            const value = minutes.get_value_as_int() * 60 + seconds.get_value_as_int();
+            const boundedValue = Math.max(DurationLimits.MIN,
+                Math.min(DurationLimits.MAX, value));
+            updatingSettings = true;
+            settings.set_int(key, boundedValue);
+            updatingSettings = false;
+            if (boundedValue !== value)
+                syncFromSettings();
+        };
+        minutes.connect('value-changed', updateSettings);
+        seconds.connect('value-changed', updateSettings);
+        const settingsId = settings.connect(`changed::${key}`, () => {
+            if (!updatingSettings)
+                syncFromSettings();
+        });
+        window.connect('close-request', () => {
+            settings.disconnect(settingsId);
+            return false;
+        });
+
+        row.add_suffix(minutes);
+        row.add_suffix(new Gtk.Label({label: ':'}));
+        row.add_suffix(seconds);
+        row.add_suffix(this._createResetButton(settings, key));
+        return row;
+    }
+
+    _createIntervalCountRow(settings, window) {
+        const key = 'intervals-per-set';
+        const row = new Adw.SpinRow({
+            title: 'Intervals per set',
+            subtitle: 'Work sessions before a long break',
+            adjustment: new Gtk.Adjustment({
+                lower: 1,
+                upper: 10,
+                step_increment: 1,
+                value: settings.get_int(key),
+            }),
+        });
+        row.connect('notify::value', () => settings.set_int(key, row.value));
+        const settingsId = settings.connect(`changed::${key}`, () => {
+            row.value = settings.get_int(key);
+        });
+        window.connect('close-request', () => {
+            settings.disconnect(settingsId);
+            return false;
+        });
+        row.add_suffix(this._createResetButton(settings, key));
+        return row;
+    }
+
+    _createResetButton(settings, key) {
+        const button = new Gtk.Button({
+            icon_name: 'edit-clear-symbolic',
+            valign: Gtk.Align.CENTER,
+            css_classes: ['flat'],
+            tooltip_text: 'Reset to default',
+        });
+        button.connect('clicked', () => settings.reset(key));
+        return button;
     }
 
     _createSoundPickerRow(settings, key, title, subtitle, window) {

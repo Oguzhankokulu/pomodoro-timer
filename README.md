@@ -213,6 +213,11 @@ Open preferences via the dropdown menu, Extension Manager, or command line:
 gnome-extensions prefs pomodoro-timer@Oguzhankokulu.github.com
 ```
 
+Enable **Compact Menu** on the Appearance page to show only the current interval,
+remaining time, Start/Pause, Skip, More, and Settings in the panel dropdown.
+More contains Reset and Reset All. Session lengths and interval count can be
+changed on the Behavior page; task management is on the Tasks page.
+
 <br>
 
 ---

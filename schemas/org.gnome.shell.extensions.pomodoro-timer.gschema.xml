@@ -88,6 +88,12 @@
       <default>false</default>
       <summary>Always show timer in panel</summary>
     </key>
+
+    <key name="compact-menu" type="b">
+      <default>false</default>
+      <summary>Use a compact panel menu</summary>
+      <description>Show the timer and primary controls in the panel menu</description>
+    </key>
     
     <!-- Suspend Inhibitor Settings -->
     <key name="suspend-inhibitor-enabled" type="b">
